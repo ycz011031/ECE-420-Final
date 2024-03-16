@@ -37,15 +37,17 @@ basicstyle=\fontfamily{fvm}\selectfont\footnotesize}
 \begin{document}
 \maketitle
 \section{Introduction}
-Inspired by "South Park" season 18 episode 4, where Randy, the protagonist's dad, assumes the identity of famous female singer Lorde using auto-tune. The goal for this project is to implement an auto-tune app that takes in any songs with vocals, and audio of the user singing, separates the vocals from the songs, and remaps the user's voice into the song with temporal and pitch correction applied. The Repeating Pattern Extraction Technique (REPET) will be used for music/voice separation, and TD-PSOLA will be used for voice synthesis
+Inspired by "South Park" season 18 episode 4, where Randy, the protagonist's dad, assumes the identity of famous female singer Lorde using auto-tune. The goal for this project is to implement an auto-tune app that takes in any songs with vocals, and audio of the user singing, separates the vocals from the songs, and remaps the user's voice into the song with temporal and pitch correction applied. The Repeating Pattern Extraction Technique (REPET) will be used for music/voice separation, and TD-PSOLA will be used for voice synthesis.
 
 \section{Overview of the algorithm}
 \begin{itemize}
-    \item Explain the algorithm to be implemented. Please try to explain the papers in your languages.
-    \item Include citation of sources. For example, you can cite the first audio processing paper \cite{wang2003industrial}. Use ref.bib file to manage the citation (all the recommended papers are already included.)  
-    \item You can screenshot the figures and diagrams from the paper. Make sure the resolution of the copied source is high enough in your proposal.
+    \item The primary algorithm used in this project would be the Repeating Pattern Extraction Technique (REPET). It achieves voice/music separation by identifying repeating patterns, segment modeling, and extraction.
+    \item The algorithm is discussed in detail in the paper: "REpeating Pattern Extraction Technique: A Simple Method for Music/Voice Separation" \cite{rafii2012repeating}. 
+    \item 
     \item You CANNOT screenshot the equations in the paper. Please type the equations. 
 \end{itemize}
+\includegraphics[shift right = 5cm, width=0.5\textwidth]{Figure1.png}\\
+
 
 
 This is an example of inserting an equation. 
