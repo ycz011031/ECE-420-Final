@@ -1,0 +1,110 @@
+\documentclass[journal,onecolumn, draftclsnofoot, 12pt]{IEEEtran}
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{times}
+\usepackage{amsmath,amsfonts,amssymb,amsthm,commath,dsfont,enumitem}
+\usepackage[colorlinks,urlcolor=blue,citecolor=blue]{hyperref}
+\usepackage{xcolor}
+
+\usepackage{listings}
+\usepackage{todonotes}
+\usepackage[T1]{fontenc}
+\lstset{language=Python,
+basicstyle=\fontfamily{fvm}\selectfont\footnotesize}
+
+% macros adapted from matus & djhsu
+\def\ddefloop#1{\ifx\ddefloop#1\else\ddef{#1}\expandafter\ddefloop\fi}
+\def\ddef#1{\expandafter\def\csname bb#1\endcsname{\ensuremath{\mathbb{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname b#1\endcsname{\ensuremath{\mathbf{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+\def\ddef#1{\expandafter\def\csname c#1\endcsname{\ensuremath{\mathcal{#1}}}}
+\ddefloop ABCDEFGHIJKLMNOPQRSTUVWXYZ\ddefloop
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\softmax}{softmax}
+
+\newenvironment{Q}{\item}{\phantom{s}}
+\newenvironment{Solution}{\color{blue}\begin{enumerate}}{\end{enumerate}}
+%\newcommand{\todo}[1]{\textbf{\color{red} [TODO] #1}}
+
+\title{ECE420 Project Proposal\\ Your project title }
+\author{Ethan Zhou, Eric Tang \\
+\{yz69, leweit2\} @ illinois.edu}
+
+\begin{document}
+\maketitle
+\section{Introduction}
+Why you would like to do your project? What is the final goal of the project? Rough idea for Final Project applications of the algorithm.
+
+\section{Overview of the algorithm}
+\begin{itemize}
+    \item Explain the algorithm to be implemented. Please try to explain the papers in your languages.
+    \item Include citation of sources. For example, you can cite the first audio processing paper \cite{wang2003industrial}. Use ref.bib file to manage the citation (all the recommended papers are already included.)  
+    \item You can screenshot the figures and diagrams from the paper. Make sure the resolution of the copied source is high enough in your proposal.
+    \item You CANNOT screenshot the equations in the paper. Please type the equations. 
+\end{itemize}
+
+
+This is an example of inserting an equation. 
+\begin{equation} \label{eq:first}
+    \sum_{i=1}^N  \sum_{d=1}^D (\widetilde{s}_{i, T+d} - {s}_{i, T+d})^2
+\end{equation}
+The equation Eq.~\ref{eq:first} can be referenced. 
+
+
+This is an example of inserting a figure. 
+\begin{figure}[h]
+\begin{center}
+%\includegraphics[width=0.5\textwidth]{banner.png}\\
+\caption{ This is the banner of ECE 420 webpage.  } 
+\label{fig:banner}
+\end{center}
+\end{figure}
+The Figure~\ref{fig:banner} can be referenced. 
+
+
+This is an example of inserting a table.
+\begin{table}[h]
+\small
+    \centering
+    \begin{tabular}{|p{1.5in}|p{1.5in}|}
+        \hline
+        \textbf{Contents} & \textbf{Number} \\
+         \hline
+        task1 &  1\\
+        \hline
+        task2 &  2 \\
+         \hline
+         
+    \end{tabular}
+    \vspace{0.1in}
+    \caption{Tasks and allocations}
+    \label{tab:table}
+\end{table}
+The Table~\ref{tab:table} can be referenced. 
+
+
+\section{Plan for testing and validation}
+\begin{itemize}
+    \item How will you demonstrate it works?
+    \item What inputs will you be using?  Are those pre-existing or do they need to be generated?
+    \item What are the outputs?  Is it objective or subjective?  Can you collect metrics?
+    \item Start with ‘easy’ test cases, work your way up to more complex. 
+\end{itemize}
+
+\section{Contribution}
+\begin{itemize}
+    \item Author 1: task A, B, C
+    \item Author 2: task 1, 2, 3
+\end{itemize}
+
+
+
+ 
+\bibliographystyle{IEEEtran}
+\bibliography{ref}
+
+\end{document}
