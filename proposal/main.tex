@@ -30,7 +30,7 @@ basicstyle=\fontfamily{fvm}\selectfont\footnotesize}
 \newenvironment{Solution}{\color{blue}\begin{enumerate}}{\end{enumerate}}
 %\newcommand{\todo}[1]{\textbf{\color{red} [TODO] #1}}
 
-\title{ECE420 Project Proposal\\ Your project title }
+\title{ECE420 Project Proposal\\ Let Him Sing }
 \author{Ethan Zhou, Eric Tang \\
 \{yz69, leweit2\} @ illinois.edu}
 
@@ -40,13 +40,41 @@ basicstyle=\fontfamily{fvm}\selectfont\footnotesize}
 Inspired by "South Park" season 18 episode 4, where Randy, the protagonist's dad, assumes the identity of famous female singer Lorde using auto-tune. The goal for this project is to implement an auto-tune app that takes in any songs with vocals, and audio of the user singing, separates the vocals from the songs, and remaps the user's voice into the song with temporal and pitch correction applied. The Repeating Pattern Extraction Technique (REPET) will be used for music/voice separation, and TD-PSOLA will be used for voice synthesis.
 
 \section{Overview of the algorithm}
+The primary algorithm used in this project would be the Repeating Pattern Extraction Technique (REPET). It achieves voice/music separation. The algorithm is discussed in detail in the paper: "REpeating Pattern Extraction Technique: A Simple Method for Music/Voice Separation" \cite{rafii2012repeating}.
+
+\vspace{0.5cm}
 \begin{itemize}
-    \item The primary algorithm used in this project would be the Repeating Pattern Extraction Technique (REPET). It achieves voice/music separation by identifying repeating patterns, segment modeling, and extraction.
-    \item The algorithm is discussed in detail in the paper: "REpeating Pattern Extraction Technique: A Simple Method for Music/Voice Separation" \cite{rafii2012repeating}. 
-    \item 
-    \item You CANNOT screenshot the equations in the paper. Please type the equations. 
+    \item \textbf{Step 1: Identifying repeating pattern} 
 \end{itemize}
-\includegraphics[shift right = 5cm, width=0.5\textwidth]{Figure1.png}\\
+\begin{description}
+   Repeating Periods could be found by using auto-correlation. Given a mixture signal x, first calculate its STFT X, using half-overlapping hamming windows of N samples, then derive the magnitude spectro gram V by taking abs(X). To emphasize the appearance of peaks of periodicity in B, $V^2$ is used. The overall acoustic self-similarity b of x is obtained by averaging the rows of B. As shown in the following equations.
+\end{description}
+
+
+    B(i,j) = $1/(m-j+1)$ (Equation)
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item \textbf{Step 2: Repeating Segment Modeling} 
+\end{itemize}
+\begin{description}
+   Once the repeating period p is estimated from the beat spectrum b, we evenly time-segment the spectrogram V in to r segments of length p. Define the repeating segment model S as the element wise median of the r segments.   
+\end{description}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item \textbf{Step 3: Repeating Patterns Extraction} 
+\end{itemize}
+\begin{description}
+   Once the repeating segment model S is calculated, it can be used to derive a repeating spectrogram model W, by taking the element wise minimum between S and each of the r segments of the spectrogram V. 
+\end{description}
+
+
+\vspace{0.8cm}
+\begin{center}
+\includegraphics[width=0.5\textwidth]{Figure1.png}\\
+Fig.1 Overview of the REPET Algorithm
+\end{center}
 
 
 
