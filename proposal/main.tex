@@ -70,11 +70,40 @@ The primary algorithm used in this project would be the Repeating Pattern Extrac
 \end{description}
 
 
-\vspace{0.8cm}
-\begin{center}
-\includegraphics[width=0.5\textwidth]{Figure1.png}\\
-Fig.1 Overview of the REPET Algorithm
-\end{center}
+\begin{figure}[ht]
+\centering
+\includegraphics[width=\textwidth]{Figure1.png}
+    \caption{ Overview of the  Algorithm  } 
+
+\end{figure}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item \textbf{Step 4: Detecting Voiced components} 
+\end{itemize}
+\begin{description}
+   We will determine whether a period of both user input and the separated voice track. We will use pauses in voiced components to segment the entire soundtrack into sentences, which then allows us to apply temporal correction by directly stretching/compressing user input. Assuming the correction needed is not very large, thus the distortion of sounds produced by the vocal track is not significant.
+\end{description}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item \textbf{Step 5: Pitch detection} 
+\end{itemize}
+\begin{description}
+   we first segment each sentence into 40ms chunks, then apply pitch detection via auto-correlation. This will give us the spectrogram of the original voice in the song, and user input.
+\end{description}
+
+\vspace{0.5cm}
+\begin{itemize}
+    \item \textbf{Step 7: Pitch Synthesis} 
+\end{itemize}
+\begin{description}
+   We will map the user input to the original soundtrack by TD-PSOLA
+\end{description}
+
+
+
+
 
 
 
@@ -86,7 +115,7 @@ The equation Eq.~\ref{eq:first} can be referenced.
 
 
 This is an example of inserting a figure. 
-\begin{figure}[h]
+\begin{figure}[ht]
 \begin{center}
 %\includegraphics[width=0.5\textwidth]{banner.png}\\
 \caption{ This is the banner of ECE 420 webpage.  } 
@@ -119,10 +148,11 @@ The Table~\ref{tab:table} can be referenced.
 
 \section{Plan for testing and validation}
 \begin{itemize}
-    \item How will you demonstrate it works?
-    \item What inputs will you be using?  Are those pre-existing or do they need to be generated?
-    \item What are the outputs?  Is it objective or subjective?  Can you collect metrics?
-    \item Start with ‘easy’ test cases, work your way up to more complex. 
+    \item To demonstrate this algorithm work, we can sing into the microphone and listen to the output
+    \item The inputs we will be using is a pre-existing song, and the microphone on android device to record user singing. 
+    \item The output will be the final pitch/temporal corrected song. The metric would be the pitch correction accuracy, which would be measured by the deviation of the target and corrected spectrogram.
+    \item We will start with shorter and simpler soundtracks to test the voice separation effectiveness and work our way to more complex and longer soundtracks and test the accuracy of the entire system.
+    
 \end{itemize}
 
 \section{Contribution}
