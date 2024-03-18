@@ -51,7 +51,41 @@ The primary algorithm used in this project would be the Repeating Pattern Extrac
 \end{description}
 
 
-    B(i,j) = $1/(m-j+1)$ (Equation)
+
+         \[B(i,j) = \frac{1}{m-j+1}\sum_{k=1}^{m-j+1} V(i,k)^2V(i,k + j - 1)^2 \]
+         \[b(j)=\frac{1}{n}\sum_{i=1}^{n}B(i,j)\] \[then : b(j)=\frac{b(j)}{b(1)}\]
+         for \(i= 1 \dots n\)(frequency)where \(n = \frac{N}{2} + 1\)
+         \centering
+         \\
+         for \(j= 1 \dots m\)(lag) where \(m\) = number of time frames
+         \centering
+         \\
+
+\begin{description}
+   A simple procedure for automatically estimating the repeating period p. The idea is to find which period in the beat spectrum has the highest mean accumulated energy over its integer multiples. For each possible period j in b, we check if its integer multiples i correspond to the highest peaks in their respective neighborhoods, where Delta is a variable distance parameter, the function of j. At the end, we minus the mean of the given neighborhood to filter any possible noisy background.
+\end{description}
+         \textbf{for} each possible period j in the first 1/3 of b \textbf{do}
+         \\
+        \\
+        \Delta \leftarrow [3j/4], I \leftarrow 0
+        \\
+         \textbf{for} each possible integer multiple i of j in b \textbf{do}
+         \\
+         h \leftarrow $argmax$ b(k)   (k \in [i-\Delta , i+\Delta])
+         \\
+         \textbf{if} h = $argmax$ b(k) \textbf{then}
+         \\
+         I \leftarrow I + b(h) - avg(b(k))
+         \\
+         \textbf{end if}
+         \\
+         \textbf{end for}
+         \\
+         J(i) \leftarrow I/[l/j]
+         \\
+         \textbf{end for}
+         \\
+         p \leftarrow $argmax_{j}$ J(j) 
 
 \vspace{0.5cm}
 \begin{itemize}
@@ -60,6 +94,15 @@ The primary algorithm used in this project would be the Repeating Pattern Extrac
 \begin{description}
    Once the repeating period p is estimated from the beat spectrum b, we evenly time-segment the spectrogram V in to r segments of length p. Define the repeating segment model S as the element wise median of the r segments.   
 \end{description}
+
+    \[S(i,l) = \underset{k=1,,,r}{\mathrm{median}} \{V(i,l+(k-1))\}\]
+    for \(i= 1 \dots n\)(frequency) and \(l = 1 \dots p\)(time)
+    \centering
+    \\
+    define \(p\) = period length, \(r\) = number of segments
+    \centering
+    
+
 
 \vspace{0.5cm}
 \begin{itemize}
@@ -70,9 +113,23 @@ The primary algorithm used in this project would be the Repeating Pattern Extrac
 \end{description}
 
 
+    \[W(i,l+(k-1)p) = \min{S(i,l),V(i,l+(k-1)p)}\]
+    for \(i = 1 \dots n, l = 1 \dots p\) and \(k = 1 \dots r\)
+
+\begin{description}
+   Once the repeating spectrogram model W is calculated, a soft time-drequency mask M could be derived by normalizing W by V element-wise. The idea is time-frequency bins that are likely to repeat at period p in V will have values near 1 in M and will be weighted toward the repeating background and time-frequency bins that are not likely to repeat at period p in V would have values near 0 in M .
+\end{description}
+    \[M(i,j) = \frac{W(i,j)}{V(i,j)}\]
+    for \ i =1 \dots n (frequency) and j = 1 \dots m (time)
+
+
+
+
+
+
 \begin{figure}[ht]
 \centering
-\includegraphics[width=\textwidth]{Figure1.png}
+\includegraphics[width=0.7\textwidth]{Figure1.png}
     \caption{ Overview of the  Algorithm  } 
 
 \end{figure}
@@ -104,48 +161,6 @@ The primary algorithm used in this project would be the Repeating Pattern Extrac
 
 
 
-
-
-
-This is an example of inserting an equation. 
-\begin{equation} \label{eq:first}
-    \sum_{i=1}^N  \sum_{d=1}^D (\widetilde{s}_{i, T+d} - {s}_{i, T+d})^2
-\end{equation}
-The equation Eq.~\ref{eq:first} can be referenced. 
-
-
-This is an example of inserting a figure. 
-\begin{figure}[ht]
-\begin{center}
-%\includegraphics[width=0.5\textwidth]{banner.png}\\
-\caption{ This is the banner of ECE 420 webpage.  } 
-\label{fig:banner}
-\end{center}
-\end{figure}
-The Figure~\ref{fig:banner} can be referenced. 
-
-
-This is an example of inserting a table.
-\begin{table}[h]
-\small
-    \centering
-    \begin{tabular}{|p{1.5in}|p{1.5in}|}
-        \hline
-        \textbf{Contents} & \textbf{Number} \\
-         \hline
-        task1 &  1\\
-        \hline
-        task2 &  2 \\
-         \hline
-         
-    \end{tabular}
-    \vspace{0.1in}
-    \caption{Tasks and allocations}
-    \label{tab:table}
-\end{table}
-The Table~\ref{tab:table} can be referenced. 
-
-
 \section{Plan for testing and validation}
 \begin{itemize}
     \item To demonstrate this algorithm work, we can sing into the microphone and listen to the output
@@ -157,10 +172,37 @@ The Table~\ref{tab:table} can be referenced.
 
 \section{Contribution}
 \begin{itemize}
-    \item Author 1: task A, B, C
-    \item Author 2: task 1, 2, 3
+    \item Ethan Zhou: task A, C, E, F
+    \item Eric Tang: task B, D, E, F
 \end{itemize}
 
+
+\begin{table}[h]
+\small
+    \centering
+    \begin{tabular}{|p{1.5in}|p{1.5in}|}
+        \hline
+        \textbf{Contents} & \textbf{Number} \\
+         \hline
+        task A &  Implement the voice/music separation algorithm in Python \\
+        \hline
+        task B &  Implement the remaining elements in Python \\
+        \hline
+        task C &  Implement the voice/music separation algorithm in C++ \\
+        \hline
+        task D &  Implement the remaining elements in C++ \\
+        \hline
+        task E &  Android integration of functions and UI \\
+        \hline
+        task F &  Project video for extra credit (optional) \\
+        \hline
+         
+    \end{tabular}
+    \vspace{0.1in}
+    \caption{Tasks and allocations}
+    \label{tab:table}
+\end{table}
+ 
 
 
  
