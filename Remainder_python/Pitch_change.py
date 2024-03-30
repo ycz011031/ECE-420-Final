@@ -1,9 +1,3 @@
-import numpy as np
-from numpy.fft import fft
-import matplotlib.pyplot as plt
-import scipy.io.wavfile as spwav
-import sys
-
 
 
 def pitch_synth (epoch_marks_orig,F_s, audio_data,N,F_new):
