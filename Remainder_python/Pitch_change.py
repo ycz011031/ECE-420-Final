@@ -1,6 +1,7 @@
+from imports import *
 
-
-def pitch_synth (epoch_marks_orig,F_s, audio_data,N,F_new):
+def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
+    N = len(audio_data)
     new_epoch_spacing = F_s//F_new
     audio_out = np.zeros(N)
     epoch_mark = 0

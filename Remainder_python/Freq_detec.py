@@ -1,3 +1,4 @@
+from imports import *
 
 def getEnergy(frame):
     E = 0
@@ -68,5 +69,4 @@ def freq_detect(frame, Fs):
     freq = Fs/peak_select(st_pt,sp_pt,peaks)
 
     return freq
-
 
