@@ -2,73 +2,80 @@
 #output 
 import numpy as np;
 import scipy
-
+import math
 
 x = np.zeros(10)
 N = 100
 
-
+def autoc(frame):
+    fft_frame = np.fft.fft(frame)
+    power_spectrum = fft_frame * np.conj(fft_frame)
+    autoc = np.abs(np.fft.ifft(power_spectrum))
+    
+    return autoc
 
 
 f, t, X = scipy.stft(x, window='hamming', nperseg=N, noverlap=N//2, return_onesided=True) # get stft of x
 
 V = np.abs(X) #magnitude spectrogram V
 
+V_squared = V**2
+B = np.zeros_like(V_squared)
+
+# do autocorelation of V_squared row by row, and put it in B
+num_rows = V_squared.shape[0]
+for i in range(num_rows):
+    B[i] = autoc(V_squared[i])
 
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io.wavfile import read, write
-from numpy.fft import fft, ifft
+n = N/2 + 1
+m = t
+# Paper method
+'''
 
-FRAME_SIZE = 2048
+for i in range (n):
+    for j in range (m):
+        sum = 0
+        for k in range (m - j + 1):
+            if k + j - 1 < m:
+                sum = V_squared(i,k)*V_squared(i, k + j - 1)
+            else :
+                raise Exception("Autoc out of bounds")
+    norm = m - j + 1
+    if norm > 0:  # Prevent division by zero
+        B[i, j] = sum / norm
+    else:
+        B[i, j] = 1145141919810
+'''
 
-################## YOUR CODE HERE ######################
-def ece420ProcessFrame(frame, Fs):
-    freq = -1
-    Es = 0
-    for i in range(len(frame)):
-        Es += np.absolute(frame[i])  *2 
-    Thresh = 200e7
-    if(Es > Thresh):
-        autoc = np.abs(ifft(np.abs(fft(frame) np.conj(fft(frame)))))
-        max = -np.Infinity
-        location = 0
-        for i in range(50, FRAME_SIZE-50):
-            if(autoc[i] > max):
-                max = autoc[i]
-                location = i
+#calculate b, bear spectrum
+b = np.zeros(m)
+b = np.sum(B, axis=0) / n
+b = b / b[0]
 
-        if(location != 0): freq = Fs/location
 
-    return freq
 
-#def ece420ProcessFrame(frame, Fs):
-    freq = -1
-    Es = 0
-    for i in range(len(frame)):
-        Es += np.square(np.absolute(frame[i]))
-    Thresh = 1800000000
-    if(Es > Thresh):
-        autoc = np.abs(ifft(fft(frame)np.conj(fft(frame))))
-        max = -np.Infinity
-        location = 0
-        # need to only check freq between 70Hz - 270Hz for voice detection
-        high = int(np.floor(Fs / 70))  # low end of range
-        low = int(np.ceil(Fs / 270)) # high end of range
-        if(high > FRAME_SIZE - 20):
-            high = FRAME_SIZE - 20
-        for i in range(low, high):
-            if(autoc[i] > max):
-                if location != 0: 
-                    ratio = i / location
-                    if not((ratio > 1.9 and ratio < 2.1) or (ratio > 2.9 and ratio < 3.1)): #check for 2nd and third harmonics
-                        max = autoc[i]
-                        location = i
-                else:
-                    max = autoc[i]
-                    location = i
 
-        if(location != 0): freq = Fs/location
+b_valid = b[0:3*len(b)//4]  # discard the longer 1/4 lag
+l = len(b_valid)
 
-    return freq
+#j needs to be defined, and each possible period within b/3
+
+Jarray = np.zeros(N) #Jarray contains alll possible j(period) within the first third of b, but doesn't know how to get js, need to check with prof
+J = np.zeros(l/3)
+# calculate p using algorithm in paper page 4
+for j in Jarray:
+    delta2 = math.floor(3j/4)
+    delta1 = j # should be one for a bigger neigborhood, need to confirm the exact value
+    for i in range(j, len(b), j):
+        I = 0
+        sum = 0
+        h1 = np.argmax(b[max(0, i-delta1): min(len(b), i+delta1)]) + max(0, i-delta1)
+        h2 = np.argmax(b[max(0, i-delta2): min(len(b), i+delta2)]) + max(0, i-delta2)
+        for k in range(max(0, i-delta2), min(len(b), i+delta2)):
+            sum += b[k]
+        if h1 == h2:
+            I += b[h1] - sum / ((2 * delta2) + 1)
+    J[j] = I/math.floor(l/j)
+    p = np.argmax(J[j])
+    
