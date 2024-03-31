@@ -1,8 +1,13 @@
 from imports import *
 
+FRAME_SIZE = 2048
+threshold = 180000000
+
 def getEnergy(frame):
     E = 0
+    #print (type(threshold))
     for i in range (len(frame)):
+        #print (E)
         E = E+(frame[i]*frame[i])
     return E
 
