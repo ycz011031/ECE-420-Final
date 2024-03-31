@@ -1,12 +1,14 @@
-from imports import *
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io.wavfile import read, write
+from numpy.fft import fft, ifft
 
-
-
+FRAME_SIZE = 8192
+threshold = (1800000000/2048)*FRAME_SIZE
+################## YOUR CODE HERE ######################
 def getEnergy(frame):
     E = 0
-    #print (type(threshold))
     for i in range (len(frame)):
-        #print (E)
         E = E+(frame[i]*frame[i])
     return E
 
@@ -57,10 +59,7 @@ def peak_select(st_pt,sp_pt,peaks):
 
 
 
-def freq_detect(frame, Fs):
-    FRAME_SIZE = len(frame)
-    threshold = (1800000000/2048)*FRAME_SIZE
-
+def ece420ProcessFrame(frame, Fs):
     freq = -1
     
     E = getEnergy(frame)
@@ -77,3 +76,24 @@ def freq_detect(frame, Fs):
 
     return freq
 
+
+################# GIVEN CODE BELOW #####################
+
+Fs, data = read('test_vector.wav')
+
+numFrames = int(len(data) / FRAME_SIZE)
+frequencies = np.zeros(numFrames)
+
+for i in range(numFrames):
+    
+    frame = data[i * FRAME_SIZE : (i + 1) * FRAME_SIZE]
+    print (frame)
+    frequencies[i] = ece420ProcessFrame(frame.astype(float), Fs)
+
+plt.figure()
+plt.plot(frequencies)
+plt.axis('tight')
+plt.xlabel('Frame idx')
+plt.ylabel('Hz')
+plt.title('Detected Frequencies in Hz, N=8192 ')
+plt.show()

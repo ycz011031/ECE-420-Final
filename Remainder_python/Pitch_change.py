@@ -8,7 +8,7 @@ def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
     itr = 0
     epoch_marks_orig = np.insert(epoch_marks_orig,0,0)
     for i in range(0, N, new_epoch_spacing):
-        itr = find_map(i,epoch_marks_orig,epoch_mark)
+        itr = find_map(i,epoch_marks_orig,epoch_mark,epoch_marks_orig)
         epoch_mark = itr
         epoch_marks_orig = np.append(epoch_marks_orig,len(audio_data)-1000)
         p0 = int(abs((epoch_marks_orig[itr-1])-(epoch_marks_orig[itr+1]))/2)
@@ -20,7 +20,7 @@ def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
 
 
 
-def find_map (new_epoch, epoc_org, epoch_mark):
+def find_map (new_epoch, epoc_org, epoch_mark,epoch_marks_orig):
     itr = epoch_mark
     delta_min = 0
     for k in range (epoch_mark,len(epoc_org)):
