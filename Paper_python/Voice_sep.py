@@ -33,10 +33,10 @@ m = t
 # Paper method
 '''
 
-for i in range (n):
-    for j in range (m):
+for i in range (1, n + 1):
+    for j in range (1, m + 1):
         sum = 0
-        for k in range (m - j + 1):
+        for k in range (1, m - j + 2):
             if k + j - 1 < m:
                 sum = V_squared(i,k)*V_squared(i, k + j - 1)
             else :
@@ -64,18 +64,59 @@ l = len(b_valid)
 Jarray = np.zeros(N) #Jarray contains alll possible j(period) within the first third of b, but doesn't know how to get js, need to check with prof
 J = np.zeros(l/3)
 # calculate p using algorithm in paper page 4
-for j in Jarray:
-    delta2 = math.floor(3j/4)
-    delta1 = j # should be one for a bigger neigborhood, need to confirm the exact value
-    for i in range(j, len(b), j):
-        I = 0
-        sum = 0
-        h1 = np.argmax(b[max(0, i-delta1): min(len(b), i+delta1)]) + max(0, i-delta1)
-        h2 = np.argmax(b[max(0, i-delta2): min(len(b), i+delta2)]) + max(0, i-delta2)
-        for k in range(max(0, i-delta2), min(len(b), i+delta2)):
-            sum += b[k]
+for j in range(1, l // 3 + 1):  # Starting from 1 to avoid division by zero
+    delta1 = j  # Assuming a neighborhood size based on 'j', adjust if necessary
+    delta2 = math.floor(3 * j / 4)
+    I = 0 
+    for i in range(j, l, j):
+        sum_ = 0
+        h1 = np.argmax(b[i-delta1: i+delta1+1]) + max(0, i-delta1)
+        h2 = np.argmax(b[i-delta2:  i+delta2+1]) + max(0, i-delta2)
+        for k in range(i-delta2, i+delta2+1):
+            sum_ += b[k]
         if h1 == h2:
-            I += b[h1] - sum / ((2 * delta2) + 1)
-    J[j] = I/math.floor(l/j)
-    p = np.argmax(J[j])
-    
+            I += b[h1] - sum_ / ((2 * delta2) + 1)
+    J[j-1] = I / math.floor(l / j)
+
+# Find the index of the maximum score in 'J', which corresponds to the estimated period 'p'
+p = np.argmax(J) + 1 # repeating period
+
+
+r = V.shape[1] // p # segments of p in V
+S = np.zeros((n, p*r)) #repeating segment model
+'''
+for i in range (n):
+    segments = np.zeros((r, p))
+    for k in range(r):
+        segments[k, :] = V[i, k*p:(k+1)*p]
+    S[i, :] = np.median(segments, axis=0)
+'''
+
+for i in range(1, n + 1):  # Iterate over each frequency bin
+    for l in range(1, p + 1):  # For each position within the period
+        values_at_l = [V[i, l + k * p] for k in range(r)]
+        # Compute the median of these values and assign to S
+        S[i, l] = np.median(values_at_l)
+
+W = np.zeros((n, p*r)) #repeating spectrogram model
+for i in range (1, n + 1):
+    for l in range (1, p + 1):
+        for k in range (r):
+            idx = l + k * p
+            if idx < V.shape[1]:  
+                W[i, idx] = np.minimum(S[i, l], V[i, idx])
+            else:
+                print('out of bounds in W processing')
+
+
+M = np.zeros((n,m)) # calculating mask
+for i in range(1, n+1):
+    for j in range(1, m+1):
+        if V[i, j] != 0:
+            M[i, j] = W[i, j] / V[i, j]
+        else:
+            M[i, j] = 0
+        if (M[i,j] > 1):
+            print('M[i,j] > 1', M[i,j])
+        if (M[i,j] < 0):
+            print('M[i,j] < 0', M[i,j])
