@@ -2,7 +2,7 @@ from imports import *
 
 def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
     N = len(audio_data)
-    new_epoch_spacing = F_s//F_new
+    new_epoch_spacing = int(F_s//F_new)
     audio_out = np.zeros(N)
     epoch_mark = 0
     itr = 0
@@ -14,7 +14,9 @@ def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
         p0 = int(abs((epoch_marks_orig[itr-1])-(epoch_marks_orig[itr+1]))/2)
         epoch_marks_orig = np.delete(epoch_marks_orig,len(epoch_marks_orig)-1)
         window = np.hanning(p0*2)
-        windowed_sample = window_apply(audio_data[epoch_marks_orig[itr]-p0:epoch_marks_orig[itr]+p0] ,window)
+        left_idx = int(epoch_marks_orig[itr]-p0)
+        right_idx = int(epoch_marks_orig[itr]+p0)
+        windowed_sample = window_apply(audio_data[left_idx:right_idx] ,window)
         sample_addition(audio_out,windowed_sample,i-p0)
     return audio_out
 
@@ -49,7 +51,7 @@ def window_apply (a,b):
 
 def sample_addition(a,b,start):
     for x in range(len(b)-1):
-        if (start+x > 170267):
+        if (start+x >= 2048):
             break
         a[start+x]+=b[x]
     return
