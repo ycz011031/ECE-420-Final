@@ -199,14 +199,13 @@ scipy.io.wavfile.write('output_stage3_synthesized.wav',F_s,audio_user_adj_syth_o
 
 data_fd = np.fft.fft(audio_user_adj_syth_out)
 freq_i = np.fft.fftfreq(len(audio_user_adj_syth_out),d=1/F_s)
-plt.figure()
-plt.plot(freq_i,np.abs(data_fd))
-plt.xlabel('frequency')
-plt.ylabel('magnitude')
-plt.title('frequency domain')
-plt.show()
 
 
+
+audio_output = sample_addition(audio_data_m_out,audio_user_adj_syth_out,0)
+
+#audio_output_final = np.array(audio_output,dtype=np.int16)
+scipy.io.wavfile.write('output_final_synthesized.wav',F_s,audio_data_m_out)
 
 
 
