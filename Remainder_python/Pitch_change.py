@@ -17,6 +17,7 @@ def pitch_synth (epoch_marks_orig,F_s, audio_data,F_new):
         left_idx = int(epoch_marks_orig[itr]-p0)
         right_idx = int(epoch_marks_orig[itr]+p0)
         windowed_sample = window_apply(audio_data[left_idx:right_idx] ,window)
+        #print(i-p0)
         sample_addition(audio_out,windowed_sample,i-p0)
     return audio_out
 
@@ -51,7 +52,10 @@ def window_apply (a,b):
 
 def sample_addition(a,b,start):
     for x in range(len(b)-1):
-        if (start+x >= 2048):
+        if (start+x >= len(a)):
             break
-        a[start+x]+=b[x]
+        if (start+x >=0):
+            a[start+x]+=b[x]
     return
+
+
