@@ -52,8 +52,10 @@ def window_apply (a,b):
 
 def sample_addition(a,b,start):
     for x in range(len(b)-1):
-        if (start+x >= 2048):
+        if (start+x >= len(a)):
             break
         if (start+x >=0):
             a[start+x]+=b[x]
     return
+
+

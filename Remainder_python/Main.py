@@ -77,6 +77,82 @@ for i in range(numFrames_org):
     notes.append(freq)
 print ("notes generated")
 
+
+
+def find_closest_in_vector(vector, value, min_idx, max_idx):
+
+    # Ensure the indices are within the bounds of the vector
+    min_idx = max(0, min_idx)
+    max_idx = min(len(vector), max_idx)
+    
+    # Initialize the minimum difference found and the index of that difference
+    min_diff = float(np.inf)
+    closest_idx = min_idx
+
+    # Iterate through the specified range
+    for i in range(min_idx, max_idx):
+        diff = abs(vector[i] - value)
+        if diff < min_diff:
+            min_diff = diff
+            closest_idx = i
+
+    return closest_idx
+
+def lab5_pitch_shift(buffer_in, F_S, FREQ_NEW, FRAME_SIZE):
+    period_len = F_s/freq_detect(buffer_in,F_s)
+    freq = F_S / period_len
+    print(f"Frequency target: {FREQ_NEW}")
+    if period_len > 0:
+        print(f"Frequency detected: {freq}")
+
+        epoch_locations = findEpochLocations(buffer_in, period_len)
+
+        new_epoch_spacing = F_S / FREQ_NEW
+        new_epoch_idx = 0
+        epoch_mark = 0
+
+        buffer_out = np.zeros_like(buffer_in)
+
+        while (new_epoch_idx < FRAME_SIZE * 2):
+            itr = find_closest_in_vector(epoch_locations, new_epoch_idx, epoch_mark, len(epoch_locations) - 1)
+            epoch_mark = itr
+
+            p0 = abs(epoch_locations[itr - 1] - epoch_locations[itr + 1]) // 2
+
+            # Window generation
+
+            window = np.hanning(p0*2)
+            windowed_sample = []
+            # Window application
+            for z in range(2 * int(p0)):
+                windowed_sample.append (window[z] * buffer_in[int(epoch_locations[itr] )- int(p0) + z])
+
+            # Sample localization
+            sample_addition(buffer_out, windowed_sample, int(new_epoch_idx - p0))
+            new_epoch_idx += new_epoch_spacing
+
+        # Final bookkeeping
+        new_epoch_idx -= FRAME_SIZE
+        if (new_epoch_idx < FRAME_SIZE):
+            new_epoch_idx = FRAME_SIZE
+
+    return buffer_out
+
+def butter_lowpass(cutoff_freq, sampling_freq, order=5):
+    nyquist_freq = 0.5 * sampling_freq
+    normal_cutoff = cutoff_freq / nyquist_freq
+    b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def apply_filter(data, cutoff_freq, sampling_freq, order=5):
+    b, a = butter_lowpass(cutoff_freq, sampling_freq, order=order)
+    filtered_data = signal.lfilter(b, a, data)
+    return filtered_data
+
+
+
+
+
 #after resampling, there is still a slight mismatch in length from the target and user, here we select the shorter one as base to avoid seg fault
 numFrames_usr = int(len(audio_user_adj)/Frame_size)
 
@@ -100,10 +176,12 @@ for k in range(numFrames-1):
     epochs = epochs1 + epochs2 + epochs3
     epochs.sort()
     #print(epochs)
-    audio_out_ = pitch_synth (epochs,F_s, buffer,target_freq)
-
+    #audio_out_ = lab5_pitch_shift(buffer, F_s, target_freq, Frame_size)
+    #audio_out_ = pitch_synth (epochs,F_s, buffer,target_freq)
+    audio_out_ = pitch_synth (epochs1,F_s, frame,target_freq)
     for j in range (Frame_size):
-        audio_user_syth.append(audio_out_[Frame_size*2+j])
+        #audio_user_syth.append(audio_out_[Frame_size*2+j])
+        audio_user_syth.append(audio_out_[j])
 
     #print(buffer[Frame_size:Frame_size*2])
     buffer[Frame_size:Frame_size*2] = buffer[Frame_size*2:Frame_size*3]
@@ -111,8 +189,26 @@ for k in range(numFrames-1):
     epochs3 = [x + Frame_size for x in epochs2]
     epochs2 = [x + Frame_size for x in epochs1]
 
+
+apply_filter(audio_user_syth, 5000, F_s, order=5)
+
+
 audio_user_adj_syth_out = np.array(audio_user_syth,dtype=np.int16)
 scipy.io.wavfile.write('output_stage3_synthesized.wav',F_s,audio_user_adj_syth_out)
+
+
+data_fd = np.fft.fft(audio_user_adj_syth_out)
+freq_i = np.fft.fftfreq(len(audio_user_adj_syth_out),d=1/F_s)
+plt.figure()
+plt.plot(freq_i,np.abs(data_fd))
+plt.xlabel('frequency')
+plt.ylabel('magnitude')
+plt.title('frequency domain')
+plt.show()
+
+
+
+
 
 quit()
 
