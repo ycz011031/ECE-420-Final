@@ -77,7 +77,10 @@ def TempX(x, F_s,N):
     
     # Calculate p using the described algorithm
     for j in range(1, l // 3 + 1):
-        delta1 = j
+        if (j >=2):
+            delta1 = 2
+        else:
+            delta1 = j
         delta2 = math.floor(3 * j / 4)
         I = 0
         for i in range(j, l, j):
