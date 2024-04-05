@@ -5,14 +5,17 @@ def findEpochLocations(audio_data,periodlen):
     min_idx = int(0)
     max_idx = int(0)
 
+    #print ('debug audio_data is', audio_data[:20])
+    #print ('debug periodlen is', periodlen)
     largestPeak = findMaxArrayIdx(audio_data,0,len(audio_data))
     epoch_location.append(largestPeak)
-
+    #print(largestPeak)
     epochCandidateIdx = epoch_location[0] + periodlen
-    
+
     while (epochCandidateIdx < len(audio_data)):
         epoch_location.append(epochCandidateIdx)
         epochCandidateIdx += periodlen
+        
 
     epochCandidateIdx = epoch_location[0] - periodlen
     while (epochCandidateIdx > 0):
@@ -21,7 +24,6 @@ def findEpochLocations(audio_data,periodlen):
 
 
     epoch_location.sort()
-
     for i in range (len(epoch_location)-1):
         min_idx = int(epoch_location[i] - periodlen/3)
         max_idx = int(epoch_location[i] + periodlen/3)
@@ -63,5 +65,5 @@ def epochs_clean_up (array,frame_length):
             i-=1
         else:
             break
-        print (i)
+        #print (i)
     return
