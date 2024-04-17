@@ -10,7 +10,7 @@ Frame_size = 2048
 
 #reading input audios
 F_s, audio_song  = read("test_song_complete.wav")
-F_s, audio_user_ = read("test_song_user.wav")
+F_s, audio_user_ = read("test_song_user1.wav")
 F_s, audio_voice = read("test_song_clear_voice.wav")
 
 print("Read file complete, F_s is", F_s)
@@ -19,7 +19,7 @@ print("Read file complete, F_s is", F_s)
 audio_user = []
 for i in range(len(audio_user_)):
     audio_user.append(audio_user_[i])
-    audio_user.append(audio_user_[i])
+   
 
 audio_user_out = np.array(audio_user,dtype=np.int16)
 scipy.io.wavfile.write('output_stage0_user.wav',F_s,audio_user_out)
@@ -31,17 +31,23 @@ audio_voice_sep = audio_song - audio_music_sep
 
 audio_data_v = []
 audio_data_m = []
-audio_data_u = np.array(audio_user,dtype=float)
+audio_data_u = []
 
 
-print(audio_data_u.shape)
 
 if(len(audio_music_sep.shape) > 1):
     for i in range(len(audio_music_sep)):
         audio_data_v.append((audio_voice_sep[i][0] + audio_voice_sep[i][1] )/2)
         audio_data_m.append((audio_music_sep[i][0] + audio_music_sep[i][1] )/2)
-        #audio_data_u.append((audio_user[i][0] + audio_user[i][1] )/2)
+
+
+if(len(audio_user_out.shape) > 1):
+    for i in range(len(audio_user_out)):
+        audio_data_u.append((audio_user_out[i][0] + audio_user_out[i][1] )/2)
 print ("Song data processing complete")
+
+
+audio_data_u = np.array(audio_data_u,dtype=np.int16)
 
 audio_data_v_out = np.array(audio_data_v,dtype=np.int16)
 scipy.io.wavfile.write('output_stage1_voice.wav',F_s,audio_data_v_out)
