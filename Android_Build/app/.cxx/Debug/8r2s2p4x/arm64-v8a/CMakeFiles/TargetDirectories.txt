@@ -1,0 +1,3 @@
+C:/Users/Yicheng Zhou/OneDrive/Desktop/UIUC/ECE 420/ECE-420-Final/Android_Build/app/.cxx/Debug/8r2s2p4x/arm64-v8a/CMakeFiles/echo.dir
+C:/Users/Yicheng Zhou/OneDrive/Desktop/UIUC/ECE 420/ECE-420-Final/Android_Build/app/.cxx/Debug/8r2s2p4x/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Yicheng Zhou/OneDrive/Desktop/UIUC/ECE 420/ECE-420-Final/Android_Build/app/.cxx/Debug/8r2s2p4x/arm64-v8a/CMakeFiles/rebuild_cache.dir

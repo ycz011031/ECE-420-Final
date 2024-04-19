@@ -27,10 +27,8 @@ def find_map (new_epoch, epoc_org, epoch_mark,epoch_marks_orig):
     itr = epoch_mark
     delta_min = 0
     for k in range (epoch_mark,len(epoc_org)):
-    
         if (k == epoch_mark):
-            delta_min = abs(new_epoch - epoch_marks_orig[k])
-            
+            delta_min = abs(new_epoch - epoch_marks_orig[k])    
         else:
             delta_new = abs(new_epoch - epoch_marks_orig[k])
             if (delta_new <= delta_min):
@@ -41,13 +39,10 @@ def find_map (new_epoch, epoc_org, epoch_mark,epoch_marks_orig):
     return itr
 
 def window_apply (a,b):
-    output = []
-    
+    output = []  
     for j in range(len(a)):
         result = a[j]*b[j]
         output.append(result)
-
-
     return output
 
 def sample_addition(a,b,start):
