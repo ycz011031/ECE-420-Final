@@ -1,2 +1,0 @@
-C:\Users\Yicheng Zhou\OneDrive\Desktop\UIUC\ECE 420\ECE-420-Final\Android_Build\app\src\main\cpp\CMakeLists.txt
-C:\Users\Yicheng Zhou\OneDrive\Desktop\UIUC\ECE 420\ECE-420-Final\Android_Build\app\src\main\cpp\ndk-stl-config.cmake
