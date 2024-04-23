@@ -187,6 +187,15 @@ def sample_addition(a,b,start):
         if (start+x >=0):
             a[start+x]+=b[x]
     return
+
+
+def sample_addition_x(a,b,start):
+    for x in range(len(b)-1):
+        if (start+x >= len(a)):
+            break
+        if (start+x >=0):
+            a[start+x]+=b[x]
+    return a
 ##########################################################################
 
 
@@ -322,3 +331,186 @@ def check_E (frame):
         return True
     else:
         return False
+
+
+def adjust_audio_levels( vocal, user):
+    # Calculate the averages of each audio array
+    avg_vocal = np.mean(vocal)
+    avg_user = np.mean(user)
+
+    output = []
+
+    for i in range(len(user)):
+        output.append(int(user[i] * avg_vocal*1.5/avg_user))
+    return output
+
+
+
+
+
+def extract_active_audio(map_array):
+    segments = []
+    i = 0
+    while i < len(map_array):
+        if map_array[i] != 0:
+            curr_seg = []
+            j = i
+            while j < len(map_array):
+                if map_array[j] != 0:
+                    curr_seg.append(j)
+                    j += 1
+                else:
+                    break
+        
+            segments.append(curr_seg)
+            i = j
+        
+        i += 1
+    return segments
+    
+
+
+# input: 
+#       idx_2d, [[1,2,3],[5,6]]
+#       audio_1d, [frame(1), frame(2), frame(3),....]
+
+# output: frame_2d: [[frame(1)-frame(3)], [frame(5)-frame(6)]]
+#Frame_size
+
+def idx_2d_to_frame_2d(idx_2d, audio_1d, Frame_size):
+    frame_2d = []
+
+    for subarray in idx_2d:
+        localarray = []
+        for j in subarray:
+            localarray = localarray + list(audio_1d[j*Frame_size: (j+1)*Frame_size])
+        frame_2d.append(np.array(localarray))
+
+    return frame_2d
+
+
+def trim_leading_trailing(map_array):
+    segments = []
+    cur_segments = []
+    start = 0
+    start_flag = 0
+    for i in range(len(map_array)):
+        if (map_array[i] != 0) & (start_flag == 0):
+            start = i
+            start_flag = 1
+        else:
+            if (start_flag == 1):
+                break
+    
+    end = 0
+    end_flag = 0
+    for j in range(len(map_array)):
+        itr = len(map_array) - j - 1
+        if (map_array[itr] != 0) & (end_flag == 0):
+            end = itr
+            end_flag = 1
+        else:
+            if (end_flag ==1):
+                break
+    
+    for k in range(len(map_array)):
+        if (k >= start) & (k <= end):
+            cur_segments.append(k)
+    
+    segments.append(cur_segments)
+
+    return segments
+            
+
+
+def find_closest_in_vector(vector, value, min_idx, max_idx):
+
+    # Ensure the indices are within the bounds of the vector
+    min_idx = max(0, min_idx)
+    max_idx = min(len(vector), max_idx)
+    
+    # Initialize the minimum difference found and the index of that difference
+    min_diff = float(np.inf)
+    closest_idx = min_idx
+
+    # Iterate through the specified range
+    for i in range(min_idx, max_idx):
+        diff = abs(vector[i] - value)
+        if diff < min_diff:
+            min_diff = diff
+            closest_idx = i
+
+    return closest_idx
+
+def lab5_pitch_shift(buffer_in, F_S, FREQ_NEW, FRAME_SIZE,F_s):
+    period_len = F_s/freq_detect(buffer_in,F_s)
+    freq = F_S / period_len
+    print(f"Frequency target: {FREQ_NEW}")
+    if period_len > 0:
+        print(f"Frequency detected: {freq}")
+
+        epoch_locations = findEpochLocations(buffer_in, period_len)
+
+        new_epoch_spacing = F_S / FREQ_NEW
+        new_epoch_idx = 0
+        epoch_mark = 0
+
+        buffer_out = np.zeros_like(buffer_in)
+
+        while (new_epoch_idx < FRAME_SIZE * 2):
+            itr = find_closest_in_vector(epoch_locations, new_epoch_idx, epoch_mark, len(epoch_locations) - 1)
+            epoch_mark = itr
+
+            p0 = abs(epoch_locations[itr - 1] - epoch_locations[itr + 1]) // 2
+
+            # Window generation
+
+            window = np.hanning(p0*2)
+            windowed_sample = []
+            # Window application
+            for z in range(2 * int(p0)):
+                windowed_sample.append (window[z] * buffer_in[int(epoch_locations[itr] )- int(p0) + z])
+
+            # Sample localization
+            sample_addition(buffer_out, windowed_sample, int(new_epoch_idx - p0))
+            new_epoch_idx += new_epoch_spacing
+
+        # Final bookkeeping
+        new_epoch_idx -= FRAME_SIZE
+        if (new_epoch_idx < FRAME_SIZE):
+            new_epoch_idx = FRAME_SIZE
+
+    return buffer_out
+
+def butter_lowpass(cutoff_freq, sampling_freq, order=5):
+    nyquist_freq = 0.5 * sampling_freq
+    normal_cutoff = cutoff_freq / nyquist_freq
+    b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def apply_filter(data, cutoff_freq, sampling_freq, order=5):
+    b, a = butter_lowpass(cutoff_freq, sampling_freq, order=order)
+    filtered_data = signal.lfilter(b, a, data)
+    return filtered_data
+
+
+def find_closest_fraction(number):
+    closest_fraction = None
+    min_difference = float('inf')
+
+    for numerator in range(0, 11):
+        for denominator in range(1, 11):
+            fraction = numerator / denominator
+            difference = abs(number - fraction)
+            if difference < min_difference:
+                min_difference = difference
+                closest_fraction = (numerator, denominator)
+
+    return closest_fraction
+
+
+def find_start(map_,i):
+    flag = 0
+    for j in range(len(map_)):
+        if (map_[j] == i) & (flag ==0):
+            return j
