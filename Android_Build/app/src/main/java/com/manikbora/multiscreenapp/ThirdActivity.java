@@ -3,32 +3,23 @@ package com.manikbora.multiscreenapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.Toast;
 import android.widget.AdapterView;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import androidx.appcompat.app.AppCompatActivity;
 
 
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
+import java.io.File;
 
 import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
@@ -127,14 +118,7 @@ public class ThirdActivity extends AppCompatActivity {
                 is_playing_usr = !is_playing_usr;
             }
         });
-
-
-
     }
-
-
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -169,10 +153,16 @@ public class ThirdActivity extends AppCompatActivity {
     }
 
     private void startRecording() {
-        if (CheckPermissions()) {
-            mFileName = Environment.getExternalStorageDirectory().getAbsolutePath();
-            mFileName += "/AudioRecording.3gp";
 
+        File storageDir = getExternalFilesDir(null); // Gets app-specific storage directory
+        mFileName = new File(storageDir, "AudioRecording.3gp").getAbsolutePath();
+
+        if (CheckPermissions()) {
+
+            if (mRecorder != null) {
+                mRecorder.release();
+                mRecorder = null;
+            }
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 
@@ -234,14 +224,4 @@ public class ThirdActivity extends AppCompatActivity {
             Log.e("TAG", "prepare() failed");
         }
     }
-
-
-
-
-
-
-
-
-
-
 }
