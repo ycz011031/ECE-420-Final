@@ -10,7 +10,7 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Third Activity"
+        android:text="Voice Synthesis"
         android:textColor="@color/black"
         android:textSize="40sp"
         android:layout_marginBottom="516dp"
@@ -30,20 +30,18 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
-        android:id="@+id/btn_voice"
-        android:layout_marginBottom="366dp"
-        android:layout_marginLeft="-152dp"
+        android:id="@+id/btn_process"
+        android:layout_marginBottom="346dp"
         android:layout_width="100dp"
         android:layout_height="59dp"
-        android:text="Voice"
+        android:text="Go!"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
     <Button
         android:id="@+id/btn_music"
-        android:layout_marginBottom="366dp"
-        android:layout_marginRight="-152dp"
+        android:layout_marginBottom="416dp"
         android:layout_width="100dp"
         android:layout_height="59dp"
         android:text="Music"

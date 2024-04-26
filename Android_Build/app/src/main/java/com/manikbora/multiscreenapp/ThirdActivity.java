@@ -75,7 +75,7 @@ public class ThirdActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        Button btnvoice = findViewById(R.id.btn_voice);
+        Button btnvoice = findViewById(R.id.btn_process);
         btnvoice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

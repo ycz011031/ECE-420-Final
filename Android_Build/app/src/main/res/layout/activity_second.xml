@@ -10,7 +10,7 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Voice Synthesis"
+        android:text="Voice/BGM sep"
         android:textColor="@color/black"
         android:layout_marginBottom="516dp"
         android:textSize="40sp"
@@ -40,12 +40,36 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+
     <Button
-        android:id="@+id/btn_Play"
-        android:layout_marginBottom="406dp"
+        android:id="@+id/btn_BGM"
+        android:layout_marginBottom="386dp"
+        android:layout_marginLeft="-150dp"
         android:layout_width="100dp"
         android:layout_height="59dp"
-        android:text="Play"
+        android:text="BGM"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <Button
+        android:id="@+id/btn_voice"
+        android:layout_marginBottom="386dp"
+        android:layout_marginLeft="150dp"
+        android:layout_width="100dp"
+        android:layout_height="59dp"
+        android:text="Voice"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btn_Go"
+        android:layout_marginBottom="266dp"
+        android:layout_width="100dp"
+        android:layout_height="59dp"
+        android:text="Go!"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
