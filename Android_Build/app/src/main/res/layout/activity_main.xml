@@ -23,7 +23,7 @@
         android:layout_width="201dp"
         android:layout_height="79dp"
         android:layout_marginBottom="272dp"
-        android:text="User Audio"
+        android:text="Target Song"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -33,7 +33,7 @@
         android:layout_width="201dp"
         android:layout_height="76dp"
         android:layout_marginBottom="372dp"
-        android:text="Target Song"
+        android:text="Voice Synthesis"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

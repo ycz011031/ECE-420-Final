@@ -25,7 +25,6 @@ import static android.Manifest.permission.RECORD_AUDIO;
 import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 
-
 public class ThirdActivity extends AppCompatActivity {
 
     String[] item = {"Set fire to the rain", "pre-record 2", "Live Record"};
@@ -44,6 +43,7 @@ public class ThirdActivity extends AppCompatActivity {
     boolean is_recording = false;
 
     boolean is_playing_usr = false;
+
 
 
 
@@ -155,7 +155,7 @@ public class ThirdActivity extends AppCompatActivity {
     private void startRecording() {
 
         File storageDir = getExternalFilesDir(null); // Gets app-specific storage directory
-        mFileName = new File(storageDir, "AudioRecording.3gp").getAbsolutePath();
+        mFileName = new File(storageDir, "target.3gp").getAbsolutePath();
 
         if (CheckPermissions()) {
 
@@ -166,8 +166,9 @@ public class ThirdActivity extends AppCompatActivity {
             mRecorder = new MediaRecorder();
             mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
 
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mRecorder.setAudioChannels(1);
 
             mRecorder.setOutputFile(mFileName);
             try {
