@@ -93,7 +93,7 @@ class SecondActivity : AppCompatActivity() {
 
 
                 encodeSamplesToFile(output_m_c, mFileName_m!!.absolutePath)
-                encodeSamplesToFile(output_v_c, mFileName_v!!.absolutePath)
+                encodeSamplesToFile(wavBytes, mFileName_v!!.absolutePath)
             }
 
 
@@ -238,7 +238,7 @@ class SecondActivity : AppCompatActivity() {
         val outputFilePath = inputFilePath.replace(".wav", "_temp.pcm")
 
         // Decode AAC to PCM
-        val command = "-y -i $inputFilePath -f s16le -acodec pcm_s16le $outputFilePath"
+        val command = "-y -i $inputFilePath -f s16le -ar 44100 -ac 1 -acodec pcm_s16le $outputFilePath"
         val rc = FFmpeg.execute(command)
         if (rc != 0) {
             Log.e("TAG", "FFmpeg failed with exit code $rc")
@@ -268,7 +268,7 @@ class SecondActivity : AppCompatActivity() {
     }
 
     fun encodeSamplesToFile(samples: IntArray, outputFilePath: String) {
-        val tempPcmPath = outputFilePath.replace(".mp4", ".pmc")
+        val tempPcmPath = outputFilePath.replace(".mp4", ".pcm")
 
         // Write IntArray to PCM file
         try {
@@ -286,7 +286,7 @@ class SecondActivity : AppCompatActivity() {
         }
 
         // Encode PCM to AAC using FFmpeg
-        val command = "-y -f s16le -ar 44100 -ac 2 -i $tempPcmPath -c:a aac -b:a 192k $outputFilePath"
+        val command = "-y -f s16le -ar 44100 -ac 1 -i $tempPcmPath -c:a aac -b:a 192k $outputFilePath"
         val rc = FFmpeg.execute(command)
         if (rc == 0) {
             Log.i("TAG", "Successfully encoded the audio to $outputFilePath")
