@@ -32,3 +32,4 @@ extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_SecondActivi
     delete[] output1;
     delete[] output2;
 }
+

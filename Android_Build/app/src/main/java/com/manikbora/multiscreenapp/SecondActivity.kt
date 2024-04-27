@@ -87,8 +87,8 @@ class SecondActivity : AppCompatActivity() {
                     Log.e("TAG","Error, empty output from c")
                 }
 
-                mFileName_m = File(storageDir, "BGMprocessed.wav")
-                mFileName_v = File(storageDir,"Voiceprocessed.wav")
+                mFileName_m = File(storageDir, "BGMprocessed.mp4")
+                mFileName_v = File(storageDir,"Voiceprocessed.mp4")
 
 
 
@@ -211,6 +211,11 @@ class SecondActivity : AppCompatActivity() {
     }
 
     fun playAudio(datapath : String) {
+
+        val file = File(datapath)
+        if (!file.exists()) {
+            Log.e("TAG", "File does not exist: $datapath")
+        }
         // Using media player class to play our recorded audio
         mPlayer = MediaPlayer().apply {
             try {
@@ -263,7 +268,7 @@ class SecondActivity : AppCompatActivity() {
     }
 
     fun encodeSamplesToFile(samples: IntArray, outputFilePath: String) {
-        val tempPcmPath = outputFilePath.replace(".wav", ".pmc")
+        val tempPcmPath = outputFilePath.replace(".mp4", ".pmc")
 
         // Write IntArray to PCM file
         try {
