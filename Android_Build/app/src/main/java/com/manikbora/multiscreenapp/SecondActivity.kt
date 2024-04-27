@@ -32,11 +32,14 @@ class SecondActivity : AppCompatActivity() {
     private var mPlayer: MediaPlayer? = null
     private var mFileName: String? = null
 
-    external fun Repet(inputArray: IntArray, outputArray1: IntArray, outputArray2: IntArray)
+    external fun repet(inputArray: IntArray, outputArray1: IntArray, outputArray2: IntArray)
 
 
     companion object {
         const val REQUEST_AUDIO_PERMISSION_CODE = 1
+        init{
+            System.loadLibrary("echo")
+        }
     }
 
     private var isRecording = false
@@ -77,7 +80,7 @@ class SecondActivity : AppCompatActivity() {
 
 
 
-                Repet(wavBytes, output_v_c, output_m_c)
+                repet(wavBytes, output_v_c, output_m_c)
                 val storageDir = getExternalFilesDir(null)
 
                 if (output_m_c == null){
@@ -260,7 +263,7 @@ class SecondActivity : AppCompatActivity() {
     }
 
     fun encodeSamplesToFile(samples: IntArray, outputFilePath: String) {
-        val tempPcmPath = outputFilePath.replace(".mp4", "_temp.pcm")
+        val tempPcmPath = outputFilePath.replace(".wav", ".pmc")
 
         // Write IntArray to PCM file
         try {

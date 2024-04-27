@@ -3,11 +3,10 @@
 //
 
 #include <jni.h>
-#include "ece420_main.h"
-#include "ece420_lib.h"
+
 #include "kiss_fft/kiss_fft.h"
 
-extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_SecondActivity_Repet(
+extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_SecondActivity_repet(
         JNIEnv* env, jobject obj, jintArray inputArray, jintArray outputArray1, jintArray outputArray2) {
 
     // Get the length of the input array
