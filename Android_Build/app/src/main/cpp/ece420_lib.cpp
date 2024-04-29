@@ -51,3 +51,53 @@ int findClosestInVector(std::vector<int> vec, float value, int minIdx, int maxId
 
     return retIdx;
 }
+
+
+float findMaxinVector(std::vector<float> vec, size_t minIdx, size_t maxIdx){
+    float output = 0;
+    for (size_t i = minIdx; i < maxIdx; i++){
+        if(output <= vec[i]){
+            output = vec[i];
+        }
+    }
+    return output;
+}
+
+
+float findMininVector(std::vector<float> vec, size_t minIdx, size_t maxIdx){
+    float output = vec[minIdx];
+    for (size_t i = minIdx; i<maxIdx;i++){
+        if(output >= vec[i]){
+            output = vec[i];
+        }
+    }
+    return output;
+}
+
+
+
+float sumofVecotr(std::vector<float> vec, size_t minIdx, size_t maxIdx){
+    float output = 0;
+    for (size_t i = minIdx; i< maxIdx; i++){
+        output += vec[i];
+    }
+    return output;
+}
+
+float findMedian(std::vector<float>& data, int minIdx, int maxIdx) {
+    if (minIdx > maxIdx || minIdx < 0 || maxIdx >= data.size()) {
+        throw std::invalid_argument("Invalid index range.");
+    }
+
+    int n = maxIdx - minIdx + 1;
+    int midIdx = minIdx + n / 2;
+
+    std::nth_element(data.begin() + minIdx, data.begin() + midIdx, data.begin() + maxIdx + 1);
+
+    if (n % 2 != 0) {
+        return data[midIdx];
+    } else {
+        float next = *std::min_element(data.begin() + midIdx + 1, data.begin() + maxIdx + 1);
+        return (data[midIdx] + next) / 2.0;
+    }
+}
