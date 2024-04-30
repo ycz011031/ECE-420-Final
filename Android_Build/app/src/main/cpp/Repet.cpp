@@ -13,6 +13,7 @@
 #include "ece420_lib.h"
 
 
+
 std::vector<float> apply_hanning_window(const std::vector<float>& signal, int start, int size) {
     std::vector<float> windowed(size);
     for (int i = 0; i < size; ++i) {
@@ -82,7 +83,6 @@ std::vector<float> inverseSTFT(const std::vector<std::vector<std::complex<float>
     return signal;
 }
 
-
 std::vector<float> autocorrelation(const std::vector<float>& input) {
     int N = input.size();
 
@@ -118,7 +118,17 @@ std::vector<float> autocorrelation(const std::vector<float>& input) {
     return autocorr_result;
 }
 
-
+std::vector<std::vector<std::complex<float>>>reverseindex_complex(std::vector<std::vector<std::complex<float>>> source){
+    std::vector<std::vector<std::complex<float>>> output;
+    output.resize(source[0].size());
+    for (size_t i =0; i<source[0].size();i++){
+        output[i].resize(source.size());
+        for (size_t j = 0; j<source.size();j++){
+            output[i][j] = source[j][i];
+        }
+    }
+    return output;
+}
 
 
 void processAudio(int* input, int* output1, int* output2, int length){
@@ -135,10 +145,12 @@ void processAudio(int* input, int* output1, int* output2, int length){
     }
 
 
-    std::vector<std::vector<std::complex<float>>> stft_out;
+    std::vector<std::vector<std::complex<float>>> stft_out_;
     std::vector<float> times;
 
-    stft(input_flt,window_length,num_overlap,times,stft_out);
+    stft(input_flt,window_length,num_overlap,times,stft_out_);
+
+    std::vector<std::vector<std::complex<float>>> stft_out = reverseindex_complex(stft_out_);
 
     std::vector<std::vector<float>> stft_mag;
     std::vector<std::vector<float>> stft_mag_sq;
@@ -218,7 +230,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
         J[j-1] = I/(float)(int)l/j;
     }
 
-    float p = findMaxinVector(J,0,J.size()) + 1;
+    float p = (float)findMaxIndex(J,0,J.size()) + 1;
 
     int r = (int)stft_mag.size()/p;
 
@@ -228,12 +240,12 @@ void processAudio(int* input, int* output1, int* output2, int length){
         S[i].resize(p*r);
     }
 
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < p; ++j) {
+    for (int i = 0; i < (int)n-1; i++) {
+        for (int j = 0; j < (int)p; j++) {
             std::vector<float> values_at_l;
-            for (int k = 0; k < r; ++k) {
+            for (int k = 0; k < (int)r; k++) {
                 int index = j + k * p;
-                if (index < stft_mag[i].size()) { // Ensure the index does not exceed column limits
+                if (index < stft_mag.size()) { // Ensure the index does not exceed column limits
                     values_at_l.push_back(stft_mag[i][index]);
                 }
             }
@@ -284,10 +296,12 @@ void processAudio(int* input, int* output1, int* output2, int length){
     TempX.resize(stft_out.size());
     for (size_t i =0;i<stft_out.size();i++){
         TempX[i].resize(stft_out[i].size());
-        for(size_t j = 0; j<stft_out[i].size();i++){
+        for(size_t j = 0; j < stft_out[0].size();j++){
             TempX[i][j] = M[i][j] * stft_out[i][j];
         }
     }
+
+    std::vector<std::vector<std::complex<float>>> TempX_ = reverseindex_complex(TempX);
 
     output1_flt = inverseSTFT(TempX,window_length,num_overlap,length);
 
@@ -302,6 +316,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
 
     return;
 }
+
 
 extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_SecondActivity_repet(
         JNIEnv* env, jobject obj, jintArray inputArray, jintArray outputArray1, jintArray outputArray2) {
