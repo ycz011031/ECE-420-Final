@@ -30,13 +30,13 @@ std::vector<kissfft<float>::cpx_type> convert_to_complex(const std::vector<float
     return complex_signal;
 }
 
-void stft(const std::vector<float>& input_signal, int length_of_segment, int number_of_overlaps,std::vector<float>& times, std::vector<std::vector<std::complex<float>>>&  stft_results) {
+void stft(const std::vector<float>& input_signal, int length_of_segment, int number_of_overlaps,
+          std::vector<float>& times, std::vector<std::vector<std::complex<float>>>& stft_results) {
     int hop_size = length_of_segment - number_of_overlaps;
-    kissfft<float> fft(length_of_segment, false); // FFT setup
+    kissfft<float> fft(length_of_segment, false); // false for forward FFT
+
     std::vector<std::complex<float>> windowed_signal(length_of_segment);
     std::vector<std::complex<float>> spectrum(length_of_segment);
-    //std::vector<float> times;
-    //std::vector<std::vector<std::complex<float>>> stft_results;  // Store full complex spectrum
 
     for (int i = 0; i + length_of_segment <= input_signal.size(); i += hop_size) {
         auto real_windowed_signal = apply_hanning_window(input_signal, i, length_of_segment);
@@ -45,13 +45,13 @@ void stft(const std::vector<float>& input_signal, int length_of_segment, int num
         // Perform FFT
         fft.transform(windowed_signal.data(), spectrum.data());
 
-        // Store the results
+        // Store the results, only up to Nyquist frequency
         times.push_back(static_cast<float>(i));
-        stft_results.push_back(std::vector<std::complex<float>>(spectrum.begin(), spectrum.end()));  // Copy spectrum to results
+        std::vector<std::complex<float>> half_spectrum(spectrum.begin(), spectrum.begin() + length_of_segment / 2 + 1);
+        stft_results.push_back(half_spectrum);
     }
-
-    return;
 }
+
 
 std::vector<float> inverseSTFT(const std::vector<std::vector<std::complex<float>>>& inputData, int window_length, int number_of_overlap, int signalLength) {
     int hopSize = window_length - number_of_overlap; // Calculate the hop size from window length and number of overlaps
@@ -63,14 +63,22 @@ std::vector<float> inverseSTFT(const std::vector<std::vector<std::complex<float>
     std::vector<float> signal(signalLength, 0.0f);
 
     // Buffer for the output of the inverse FFT
+    std::vector<std::complex<float>> fullSpectrum(window_length);
     std::vector<std::complex<float>> timeSegment(window_length);
 
     // Overlap-add process
     for (size_t i = 0; i < inputData.size(); ++i) {
         int startIdx = i * hopSize;
 
-        // Perform the inverse FFT on the current segment
-        ifft.transform(inputData[i].data(), timeSegment.data());
+        // Reconstruct the full spectrum from the half spectrum (Hermitian symmetry)
+        for (size_t j = 0; j < inputData[i].size(); ++j) {
+            fullSpectrum[j] = inputData[i][j]; // Copy the first half
+            if (j > 0 && j < inputData[i].size() - 1) // Ensure not to double count the DC and Nyquist components
+                fullSpectrum[window_length - j] = std::conj(inputData[i][j]); // Mirror the spectrum
+        }
+
+        // Perform the inverse FFT on the reconstructed full spectrum
+        ifft.transform(fullSpectrum.data(), timeSegment.data());
 
         // Overlap-add method to reconstruct the signal
         for (int j = 0; j < window_length; ++j) {
@@ -309,10 +317,11 @@ void processAudio(int* input, int* output1, int* output2, int length){
         output1_flt.resize(length);
     }
 
-    for (size_t i = 0; i < output1_flt.size(); i++){
+    for (size_t i = 0; i < length; i++){
         output1[i] = (int)output1_flt[i];
         output2[i] = input[i] - (int)output1_flt[i];
     }
+
 
     return;
 }
@@ -334,8 +343,8 @@ extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_SecondActivi
 
     // Release memory and handle JNI clean-up
     env->ReleaseIntArrayElements(inputArray, input, 0); // Release without copying back changes
-    env->ReleaseIntArrayElements(outputArray1,output1,0);
-    env->ReleaseIntArrayElements(outputArray2,output2,0);
+    env->ReleaseIntArrayElements(outputArray1,output1,JNI_COMMIT);
+    env->ReleaseIntArrayElements(outputArray2,output2,JNI_COMMIT);
 }
 
 
