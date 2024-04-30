@@ -52,7 +52,6 @@ void stft(const std::vector<float>& input_signal, int length_of_segment, int num
     }
 }
 
-
 std::vector<float> inverseSTFT(const std::vector<std::vector<std::complex<float>>>& inputData, int window_length, int number_of_overlap, int signalLength) {
     int hopSize = window_length - number_of_overlap; // Calculate the hop size from window length and number of overlaps
 
@@ -267,18 +266,20 @@ void processAudio(int* input, int* output1, int* output2, int length){
         }
     }
 
+
     std::vector<std::vector<float>> W = stft_mag;
     size_t idx;
     for (size_t i = 0; i < n; i++){
         for (size_t j = 0; j<p; j++){
             for (size_t k = 0; k<r; k++){
                 idx = j+k*p;
-                if (idx < stft_mag.size()){
+                if (idx < stft_mag[0].size()){
                     W[i][idx] = fmin(S[i][j],stft_mag[i][idx]);
                 }
             }
         }
     }
+
 
     std::vector<std::vector<float>> M;
     M.resize(n);
