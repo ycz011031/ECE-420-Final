@@ -17,7 +17,7 @@ float findMaxinVector(std::vector<float> vec, size_t minIdx, size_t maxIdx);
 float findMininVector(std::vector<float> vec, size_t minIdx, size_t maxIdx);
 float sumofVecotr(std::vector<float> vec, size_t minIdx, size_t maxIdx);
 float findMedian(std::vector<float>& data, int minIdx, int maxIdx);
-
+size_t findMaxIndex(const std::vector<float>& data, size_t start, size_t end);
 
 
 #endif //ECE420_LIB_H

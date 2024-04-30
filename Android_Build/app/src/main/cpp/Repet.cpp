@@ -202,8 +202,8 @@ void processAudio(int* input, int* output1, int* output2, int length){
         delta2 = (float)(int)(3*j/4);
         I = 0;
         for (size_t i = j; i<l; i+=j){
-            h1 = findMaxinVector(b,(i-delta1),(i+delta1+1));
-            h2 = findMaxinVector(b,(i-delta2),(i+delta2+1));
+            h1 = (float)findMaxIndex(b,(i-delta1),(i+delta1+1));
+            h2 = (float)findMaxIndex(b,(i-delta2),(i+delta2+1));
             if (i-delta1 > 0){
                 h1 += (i-delta1);
             }
@@ -212,7 +212,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
             }
             sum_ = sumofVecotr(b,i-delta2,i+delta2+1);
             if (h1 == h2){
-                I += b[h1] - (float)(int)sum_/((2*delta2)+1);
+                I += b[(int)h1] - (float)(int)sum_/((2*delta2)+1);
             }
         }
         J[j-1] = I/(float)(int)l/j;
@@ -262,7 +262,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
 
     std::vector<std::vector<float>> M;
     M.resize(n);
-    for (int i = 0; i<n; i++){
+    for (size_t i = 0; i<M.size(); i++){
         M[i].resize(m);
     }
 

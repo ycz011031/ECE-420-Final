@@ -101,3 +101,15 @@ float findMedian(std::vector<float>& data, int minIdx, int maxIdx) {
         return (data[midIdx] + next) / 2.0;
     }
 }
+
+
+size_t findMaxIndex(const std::vector<float>& vec, size_t start, size_t end) {
+    // Ensure the range is within the bounds of the vector
+    float max = findMaxinVector(vec,start,end);
+    for (size_t i = 0; i<vec.size(); i++){
+        if (max == vec[i]){
+            return i;
+        }
+    }
+    return 0;
+}
