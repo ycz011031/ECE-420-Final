@@ -5,9 +5,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Werror")
 add_library(echo SHARED
         Repet.cpp
         audio_common.cpp
-        audio_main.cpp
-        audio_player.cpp
-        audio_recorder.cpp
         debug_utils.cpp
         kiss_fft/kiss_fft.c
         ece420_lib.cpp

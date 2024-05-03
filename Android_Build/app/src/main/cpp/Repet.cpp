@@ -7,11 +7,14 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <android/log.h>
 
-#include "kiss_fft/kiss_fft.h"
-#include "kiss_fft/kissfft.hh"
 #include "ece420_lib.h"
 
+#define FRAME_IF_INT 256
+#define FRAME_SIZE 1024
+#define ZP_FACTOR 2
+#define FFT_SIZE (FRAME_SIZE * ZP_FACTOR)
 
 
 std::vector<float> apply_hanning_window(const std::vector<float>& signal, int start, int size) {
@@ -30,6 +33,72 @@ std::vector<kissfft<float>::cpx_type> convert_to_complex(const std::vector<float
     return complex_signal;
 }
 
+
+std::vector<std::complex<float>> processSingleFrame(const std::vector<float>& input) {
+
+    std::vector<float> bufferIn = input;
+    std::vector<std::complex<float>> output(FFT_SIZE);
+
+    // Apply Hanning window
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        bufferIn[i] *= getHanningCoef(FRAME_SIZE, i);
+    }
+
+    // Prepare for FFT
+    std::vector<kiss_fft_cpx> bufferIn_cpx_T(FFT_SIZE);
+    std::vector<kiss_fft_cpx> bufferIn_cpx_F(FFT_SIZE);
+
+    // Copy windowed data to complex FFT buffer, apply zero-padding
+    for (int i = 0; i < FFT_SIZE; i++) {
+        if (i < FRAME_SIZE) {
+            bufferIn_cpx_T[i].r = bufferIn[i];
+            bufferIn_cpx_T[i].i = 0;
+        } else {
+            bufferIn_cpx_T[i].r = 0;
+            bufferIn_cpx_T[i].i = 0;
+        }
+    }
+
+    // Allocate FFT configuration
+    kiss_fft_cfg cfg = kiss_fft_alloc(FFT_SIZE, 0, nullptr, nullptr);
+
+    // Perform FFT
+    kiss_fft(cfg, bufferIn_cpx_T.data(), bufferIn_cpx_F.data());
+
+    // Free FFT configuration
+    free(cfg);
+
+    // Copy the frequency domain data to the output vector
+    for (int i = 0; i < FFT_SIZE; i++) {
+        output[i] = std::complex<float>(bufferIn_cpx_F[i].r, bufferIn_cpx_F[i].i);
+    }
+
+    return output;
+}
+
+std::vector<std::vector<std::complex<float>>> processAudioSignal(const std::vector<float>& signal) {
+
+    const int OVERLAP = 512;
+    const int HOP_SIZE = FRAME_SIZE - OVERLAP;
+
+    //int numFrames = (signal.size() - OVERLAP) / HOP_SIZE;
+    std::vector<std::vector<std::complex<float>>> stftResults;
+
+    for (int start = 0; start + FRAME_SIZE <= signal.size(); start += HOP_SIZE) {
+        // Extract the frame from the signal
+        std::vector<float> frame(signal.begin() + start, signal.begin() + start + FRAME_SIZE);
+
+        // Process the frame
+        std::vector<std::complex<float>> frameResult = processSingleFrame(frame);
+
+        // Store the result
+        stftResults.push_back(frameResult);
+    }
+
+    return stftResults;
+}
+
+
 void stft(const std::vector<float>& input_signal, int length_of_segment, int number_of_overlaps,
           std::vector<float>& times, std::vector<std::vector<std::complex<float>>>& stft_results) {
     int hop_size = length_of_segment - number_of_overlaps;
@@ -37,6 +106,7 @@ void stft(const std::vector<float>& input_signal, int length_of_segment, int num
 
     std::vector<std::complex<float>> windowed_signal(length_of_segment);
     std::vector<std::complex<float>> spectrum(length_of_segment);
+
 
     for (int i = 0; i + length_of_segment <= input_signal.size(); i += hop_size) {
         auto real_windowed_signal = apply_hanning_window(input_signal, i, length_of_segment);
@@ -50,39 +120,56 @@ void stft(const std::vector<float>& input_signal, int length_of_segment, int num
         std::vector<std::complex<float>> half_spectrum(spectrum.begin(), spectrum.begin() + length_of_segment / 2 + 1);
         stft_results.push_back(half_spectrum);
     }
+
+    for (size_t i = 0; i < stft_results.size(); i++){
+        for(size_t j = 0; j<stft_results[0].size();j++){
+            stft_results[i][j] = stft_results[i][j]/(float)length_of_segment;
+        }
+    }
+
+    std::vector<std::vector<std::complex<float>>> temp_stft_out = reverseindex_complex(stft_results);
+    stft_results = temp_stft_out;
+    return;
+}
+
+std::vector<float> generateHanningWindow(int size) {
+    std::vector<float> window(size);
+    for (int i = 0; i < size; ++i) {
+        window[i] = 0.5 * (1 - cos(2 * M_PI * i / (size - 1)));
+    }
+    return window;
 }
 
 std::vector<float> inverseSTFT(const std::vector<std::vector<std::complex<float>>>& inputData, int window_length, int number_of_overlap, int signalLength) {
     int hopSize = window_length - number_of_overlap; // Calculate the hop size from window length and number of overlaps
-
-    // Instantiate the inverse FFT object for the given window length
     kissfft<float> ifft(window_length, true); // true indicates inverse FFT
-
-    // Initialize the output signal with zeros
-    std::vector<float> signal(signalLength, 0.0f);
-
-    // Buffer for the output of the inverse FFT
+    std::vector<float> signal(signalLength, 0.0f); // Initialize the output signal with zeros
     std::vector<std::complex<float>> fullSpectrum(window_length);
     std::vector<std::complex<float>> timeSegment(window_length);
+    std::vector<float> hanningWindow = generateHanningWindow(window_length); // Generate the Hanning window
+    float temp=0;
 
     // Overlap-add process
-    for (size_t i = 0; i < inputData.size(); ++i) {
+    for (size_t i = 0; i < inputData[0].size(); ++i) {
         int startIdx = i * hopSize;
 
         // Reconstruct the full spectrum from the half spectrum (Hermitian symmetry)
-        for (size_t j = 0; j < inputData[i].size(); ++j) {
-            fullSpectrum[j] = inputData[i][j]; // Copy the first half
-            if (j > 0 && j < inputData[i].size() - 1) // Ensure not to double count the DC and Nyquist components
-                fullSpectrum[window_length - j] = std::conj(inputData[i][j]); // Mirror the spectrum
+        size_t halfSize = inputData.size();
+        fullSpectrum[0] = inputData[0][i]; // DC component
+        for (size_t j = 1; j < halfSize - 1; ++j) {
+            fullSpectrum[j] = inputData[j][i];
+            fullSpectrum[window_length - j] = std::conj(inputData[j][i]); // Mirroring the spectrum
         }
+        fullSpectrum[halfSize - 1] = inputData[halfSize - 1][i]; // Nyquist component, if exists
 
         // Perform the inverse FFT on the reconstructed full spectrum
         ifft.transform(fullSpectrum.data(), timeSegment.data());
 
-        // Overlap-add method to reconstruct the signal
+        // Apply the Hanning window and perform the overlap-add method to reconstruct the signal
         for (int j = 0; j < window_length; ++j) {
             if (startIdx + j < signal.size()) {
-                signal[startIdx + j] += timeSegment[j].real(); // Assuming a real-valued original signal
+                temp = timeSegment[j].real();// (hanningWindow[j]*2);
+                signal[startIdx + j] += temp;
             }
         }
     }
@@ -125,39 +212,35 @@ std::vector<float> autocorrelation(const std::vector<float>& input) {
     return autocorr_result;
 }
 
-std::vector<std::vector<std::complex<float>>>reverseindex_complex(std::vector<std::vector<std::complex<float>>> source){
-    std::vector<std::vector<std::complex<float>>> output;
-    output.resize(source[0].size());
-    for (size_t i =0; i<source[0].size();i++){
-        output[i].resize(source.size());
-        for (size_t j = 0; j<source.size();j++){
-            output[i][j] = source[j][i];
-        }
-    }
-    return output;
-}
 
 
-void processAudio(int* input, int* output1, int* output2, int length){
+
+void processAudio(const int* input, int* output1, int* output2, int length){
 
     int window_length = 1024;
-    int num_overlap = window_length/2;
-
+    int num_overlap = 1024/2;
 
     std::vector<float> output1_flt(length);
     std::vector<float> output2_flt(length);
     std::vector<float> input_flt(length) ;
+
+
     for (int i= 0; i<length; i++){
-        input_flt[i] = (float)input[i];
+        input_flt[i] = static_cast<float>(input[i]);
+        //__android_log_print(ANDROID_LOG_INFO, "ArrayLog", "Array[%d] = %d Vector[%d] = %f", i, input[i],i,input_flt[i]);
+    }
+
+    std::vector<float> sine_wave = generateSineWave(86, 44100, 0.2);
+    std::vector<float> constant(1024*3);
+    for (size_t i = 0; i<constant.size();i++){
+        constant[i]=1;
     }
 
 
-    std::vector<std::vector<std::complex<float>>> stft_out_;
+    std::vector<std::vector<std::complex<float>>> stft_out;
     std::vector<float> times;
 
-    stft(input_flt,window_length,num_overlap,times,stft_out_);
-
-    std::vector<std::vector<std::complex<float>>> stft_out = reverseindex_complex(stft_out_);
+    stft(input_flt,window_length,num_overlap,times,stft_out);
 
     std::vector<std::vector<float>> stft_mag;
     std::vector<std::vector<float>> stft_mag_sq;
@@ -196,8 +279,10 @@ void processAudio(int* input, int* output1, int* output2, int length){
         b[i] = b[i]/n;
     }
 
+    float temp_b = b[0];
+
     for (size_t i=0; i<b.size(); i++){
-        b[i] = b[i]/b[0];
+        b[i] = b[i]/temp_b;
     }
 
     std::vector<float> b_valid(b.begin(),b.begin()+(size_t)(3*b.size()/4));
@@ -205,12 +290,10 @@ void processAudio(int* input, int* output1, int* output2, int length){
 
     std::vector<float> J;
     J.resize(l/3);
-
-    size_t delta1, delta2;
     float I, sum_;
-
     float h1,h2;
 
+    size_t delta1, delta2;
     for (size_t j = 1; j <(int)l/3+1; j++){
         if (j>=2){
             delta1 = 2;
@@ -218,7 +301,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
         else{
             delta1 =j;
         }
-        delta2 = (float)(int)(3*j/4);
+        delta2 = float((int)(3*j/4));
         I = 0;
         for (size_t i = j; i<l; i+=j){
             h1 = (float)findMaxIndex(b,(i-delta1),(i+delta1+1));
@@ -231,13 +314,13 @@ void processAudio(int* input, int* output1, int* output2, int length){
             }
             sum_ = sumofVecotr(b,i-delta2,i+delta2+1);
             if (h1 == h2){
-                I += b[(int)h1] - (float)(int)sum_/((2*delta2)+1);
+                I += b[(int)h1] - float((int)sum_/((2*delta2)+1));
             }
         }
-        J[j-1] = I/(float)(int)l/j;
+        J[j-1] = I/((int)(l/j));
     }
 
-    float p = (float)findMaxIndex(J,0,J.size()) + 1;
+    float p = (float)findMaxIndex(J,10,J.size()) + 1;
 
     int r = (int)stft_mag.size()/p;
 
@@ -258,7 +341,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
             }
             if (!values_at_l.empty()) {
                 try {
-                    S[i][l] = findMedian(values_at_l, 0, values_at_l.size() - 1);
+                    S[i][j] = findMedian(values_at_l, 0, values_at_l.size() - 1);
                 } catch (const std::invalid_argument& e) {
                     std::cerr << "Error: " << e.what() << std::endl;
                 }
@@ -289,16 +372,18 @@ void processAudio(int* input, int* output1, int* output2, int length){
 
     float temp;
 
+
     for (int i = 0; i<n-1;i++){
         for (int j=0; j< m-1; j++){
             temp = stft_mag[i][j];
-            if (temp!=0){
+            if (temp!=0 && W[i][j] !=0){
                 M[i][j] = W[i][j]/temp;
             }
             else{
                 M[i][j] = 0;
             }
         }
+
     }
 
     std::vector<std::vector<std::complex<float>>> TempX;
@@ -310,7 +395,7 @@ void processAudio(int* input, int* output1, int* output2, int length){
         }
     }
 
-    std::vector<std::vector<std::complex<float>>> TempX_ = reverseindex_complex(TempX);
+    //std::vector<std::vector<std::complex<float>>> TempX_ = reverseindex_complex(TempX);
 
     output1_flt = inverseSTFT(TempX,window_length,num_overlap,length);
 
@@ -319,8 +404,12 @@ void processAudio(int* input, int* output1, int* output2, int length){
     }
 
     for (size_t i = 0; i < length; i++){
-        output1[i] = (int)output1_flt[i];
-        output2[i] = input[i] - (int)output1_flt[i];
+        output1[i] = static_cast<int>(std::round(output1_flt[i]));
+
+        output2[i] = input[i] - output1[i];
+//        if (input[i] !=0 ){
+//            output1[i] = input[i];
+//        }
     }
 
 

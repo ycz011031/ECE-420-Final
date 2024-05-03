@@ -2,9 +2,13 @@
 // Created by daran on 1/12/2017 to be used in ECE420 Sp17 for the first time.
 // Modified by dwang49 on 1/1/2018 to adapt to Android 7.0 and Shield Tablet updates.
 //
-
-#include <cmath>
 #include "ece420_lib.h"
+#include <jni.h>
+#include <cmath>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <android/log.h>
 
 // https://en.wikipedia.org/wiki/Hann_function
 float getHanningCoef(int N, int idx) {
@@ -112,4 +116,28 @@ size_t findMaxIndex(const std::vector<float>& vec, size_t start, size_t end) {
         }
     }
     return 0;
+}
+
+
+std::vector<std::vector<std::complex<float>>>reverseindex_complex(std::vector<std::vector<std::complex<float>>> source){
+    std::vector<std::vector<std::complex<float>>> output;
+    output.resize(source[0].size());
+    for (size_t i =0; i<source[0].size();i++){
+        output[i].resize(source.size());
+        for (size_t j = 0; j<source.size();j++){
+            output[i][j] = source[j][i];
+        }
+    }
+    return output;
+}
+
+std::vector<float> generateSineWave(float frequency, float samplingRate, float duration) {
+    std::vector<float> sineWave;
+    int totalSamples = static_cast<int>(samplingRate * duration);
+    for (int i = 0; i < totalSamples; ++i) {
+        float time = i / samplingRate;
+        float value = sin(2 * M_PI * frequency * time);
+        sineWave.push_back(value);
+    }
+    return sineWave;
 }

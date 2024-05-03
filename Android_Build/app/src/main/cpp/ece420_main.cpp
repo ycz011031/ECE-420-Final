@@ -4,6 +4,7 @@
 //
 
 #include <jni.h>
+#include <vector>
 #include "ece420_main.h"
 #include "ece420_lib.h"
 #include "kiss_fft/kiss_fft.h"
@@ -20,8 +21,8 @@ Java_com_ece420_lab5_MainActivity_writeNewFreq(JNIEnv *env, jclass, jint);
 #define FRAME_SIZE 1024
 #define BUFFER_SIZE (3 * FRAME_SIZE)
 #define F_S 48000
-float bufferIn[BUFFER_SIZE] = {};
-float bufferOut[BUFFER_SIZE] = {};
+
+//float bufferOut[BUFFER_SIZE] = {};
 int newEpochIdx = FRAME_SIZE;
 
 // We have two variables here to ensure that we never change the desired frequency while
@@ -29,29 +30,16 @@ int newEpochIdx = FRAME_SIZE;
 int FREQ_NEW_ANDROID = 300;
 int FREQ_NEW = 300;
 
-bool lab5PitchShift(float *bufferIn) {
-    // Lab 4 code is condensed into this function
-    int periodLen = detectBufferPeriod(bufferIn);
-    float freq = ((float) F_S) / periodLen;
+bool PitchShift(float *bufferIn, float *bufferOut) {
+    int periodLen = detectBufferPeriod(bufferIn,bufferIn);
+    //float freq = ((float) F_S) / periodLen;
 
     // If voiced
     if (periodLen > 0) {
-
-        LOGD("Frequency detected: %f\r\n", freq);
-
         // Epoch detection - this code is written for you, but the principles will be quizzed
         std::vector<int> epochLocations;
-        findEpochLocations(epochLocations, bufferIn, periodLen);
-
-        // In this section, you will implement the algorithm given in:
-        // https://courses.engr.illinois.edu/ece420/lab5/lab/#buffer-manipulation-algorithm
-        //
-        // Don't forget about the following functions! API given on the course page.
-        //
-        // getHanningCoef();
-        // findClosestInVector();
-        // overlapAndAdd();
-        // *********************** START YOUR CODE HERE  **************************** //
+        findEpochLocations(epochLocations, bufferIn, periodLen,bufferIn);
+                // *********************** START YOUR CODE HERE  **************************** //
         int new_epoch_spacing = F_S/FREQ_NEW;
         int epoch_mark = 0;
 
@@ -85,9 +73,6 @@ bool lab5PitchShift(float *bufferIn) {
             newEpochIdx+=new_epoch_spacing;
         }
 
-
-
-
         // ************************ END YOUR CODE HERE  ***************************** //
     }
 
@@ -100,61 +85,61 @@ bool lab5PitchShift(float *bufferIn) {
 
     return (periodLen > 0);
 }
+void overlapAddArray(float *dest, float *src, int startIdx, int len) {
+    int idxLow = startIdx;
+    int idxHigh = startIdx + len;
 
-void ece420ProcessFrame(sample_buf *dataBuf) {
-    // Keep in mind, we only have 20ms to process each buffer!
-    struct timeval start;
-    struct timeval end;
-    gettimeofday(&start, NULL);
-
-    // Get the new desired frequency from android
-    FREQ_NEW = FREQ_NEW_ANDROID;
-
-    // Data is encoded in signed PCM-16, little-endian, mono
-    int16_t data[FRAME_SIZE];
-    for (int i = 0; i < FRAME_SIZE; i++) {
-        data[i] = ((uint16_t) dataBuf->buf_[2 * i]) | (((uint16_t) dataBuf->buf_[2 * i + 1]) << 8);
+    int padLow = 0;
+    int padHigh = 0;
+    if (idxLow < 0) {
+        padLow = -idxLow;
+    }
+    if (idxHigh > BUFFER_SIZE) {
+        padHigh = BUFFER_SIZE - idxHigh;
     }
 
-    // Shift our old data back to make room for the new data
-    for (int i = 0; i < 2 * FRAME_SIZE; i++) {
-        bufferIn[i] = bufferIn[i + FRAME_SIZE - 1];
+    // Finally, reconstruct the buffer
+    for (int i = padLow; i < len + padHigh; i++) {
+        dest[startIdx + i] += src[i];
     }
-
-    // Finally, put in our new data.
-    for (int i = 0; i < FRAME_SIZE; i++) {
-        bufferIn[i + 2 * FRAME_SIZE - 1] = (float) data[i];
-    }
-
-    // The whole kit and kaboodle -- pitch shift
-    bool isVoiced = lab5PitchShift(bufferIn);
-
-    if (isVoiced) {
-        for (int i = 0; i < FRAME_SIZE; i++) {
-            int16_t newVal = (int16_t) bufferOut[i];
-
-            uint8_t lowByte = (uint8_t) (0x00ff & newVal);
-            uint8_t highByte = (uint8_t) ((0xff00 & newVal) >> 8);
-            dataBuf->buf_[i * 2] = lowByte;
-            dataBuf->buf_[i * 2 + 1] = highByte;
-        }
-    }
-
-    // Very last thing, update your output circular buffer!
-    for (int i = 0; i < 2 * FRAME_SIZE; i++) {
-        bufferOut[i] = bufferOut[i + FRAME_SIZE - 1];
-    }
-
-    for (int i = 0; i < FRAME_SIZE; i++) {
-        bufferOut[i + 2 * FRAME_SIZE - 1] = 0;
-    }
-
-    gettimeofday(&end, NULL);
-    LOGD("Time delay: %ld us",  ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 }
+void findEpochLocations(std::vector<int> &epochLocations, float *buffer, int periodLen, float *bufferIn) {
+    // This algorithm requires that the epoch locations be pretty well marked
 
-// Returns lag l that maximizes sum(x[n] x[n-k])
-int detectBufferPeriod(float *buffer) {
+    int largestPeak = findMaxArrayIdx(bufferIn, 0, BUFFER_SIZE);
+    epochLocations.push_back(largestPeak);
+
+    // First go right
+    int epochCandidateIdx = epochLocations[0] + periodLen;
+    while (epochCandidateIdx < BUFFER_SIZE) {
+        epochLocations.push_back(epochCandidateIdx);
+        epochCandidateIdx += periodLen;
+    }
+
+    // Then go left
+    epochCandidateIdx = epochLocations[0] - periodLen;
+    while (epochCandidateIdx > 0) {
+        epochLocations.push_back(epochCandidateIdx);
+        epochCandidateIdx -= periodLen;
+    }
+
+    // Sort in place so that we can more easily find the period,
+    // where period = (epochLocations[t+1] + epochLocations[t-1]) / 2
+    std::sort(epochLocations.begin(), epochLocations.end());
+
+    // Finally, just to make sure we have our epochs in the right
+    // place, ensure that every epoch mark (sans first/last) sits on a peak
+    for (int i = 1; i < epochLocations.size() - 1; i++) {
+        int minIdx = epochLocations[i] - EPOCH_PEAK_REGION_WIGGLE;
+        int maxIdx = epochLocations[i] + EPOCH_PEAK_REGION_WIGGLE;
+
+        int peakOffset = findMaxArrayIdx(bufferIn, minIdx, maxIdx) - minIdx;
+        peakOffset -= EPOCH_PEAK_REGION_WIGGLE;
+
+        epochLocations[i] += peakOffset;
+    }
+}
+int detectBufferPeriod(float *buffer, float* bufferIn) {
 
     float totalPower = 0;
     for (int i = 0; i < BUFFER_SIZE; i++) {
@@ -221,65 +206,86 @@ int detectBufferPeriod(float *buffer) {
 }
 
 
-void findEpochLocations(std::vector<int> &epochLocations, float *buffer, int periodLen) {
-    // This algorithm requires that the epoch locations be pretty well marked
 
-    int largestPeak = findMaxArrayIdx(bufferIn, 0, BUFFER_SIZE);
-    epochLocations.push_back(largestPeak);
-
-    // First go right
-    int epochCandidateIdx = epochLocations[0] + periodLen;
-    while (epochCandidateIdx < BUFFER_SIZE) {
-        epochLocations.push_back(epochCandidateIdx);
-        epochCandidateIdx += periodLen;
+void ProcessFrame(int *dataBuf, int* dataOut, float* bufferIn, float* bufferOut) {
+    // Shift our old data back to make room for the new data
+    for (int i = 0; i < 2 * FRAME_SIZE; i++) {
+        bufferIn[i] = bufferIn[i + FRAME_SIZE - 1];
     }
 
-    // Then go left
-    epochCandidateIdx = epochLocations[0] - periodLen;
-    while (epochCandidateIdx > 0) {
-        epochLocations.push_back(epochCandidateIdx);
-        epochCandidateIdx -= periodLen;
+    // Finally, put in our new data.
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        bufferIn[i + 2 * FRAME_SIZE - 1] = (float) dataBuf[i];
     }
 
-    // Sort in place so that we can more easily find the period,
-    // where period = (epochLocations[t+1] + epochLocations[t-1]) / 2
-    std::sort(epochLocations.begin(), epochLocations.end());
+    // The whole kit and kaboodle -- pitch shift
+    bool isVoiced = PitchShift(bufferIn,bufferOut);
 
-    // Finally, just to make sure we have our epochs in the right
-    // place, ensure that every epoch mark (sans first/last) sits on a peak
-    for (int i = 1; i < epochLocations.size() - 1; i++) {
-        int minIdx = epochLocations[i] - EPOCH_PEAK_REGION_WIGGLE;
-        int maxIdx = epochLocations[i] + EPOCH_PEAK_REGION_WIGGLE;
-
-        int peakOffset = findMaxArrayIdx(bufferIn, minIdx, maxIdx) - minIdx;
-        peakOffset -= EPOCH_PEAK_REGION_WIGGLE;
-
-        epochLocations[i] += peakOffset;
-    }
-}
-
-void overlapAddArray(float *dest, float *src, int startIdx, int len) {
-    int idxLow = startIdx;
-    int idxHigh = startIdx + len;
-
-    int padLow = 0;
-    int padHigh = 0;
-    if (idxLow < 0) {
-        padLow = -idxLow;
-    }
-    if (idxHigh > BUFFER_SIZE) {
-        padHigh = BUFFER_SIZE - idxHigh;
+    for (int i =0; i<FRAME_SIZE; i++){
+        if (isVoiced){
+            dataOut[i] = bufferOut[FRAME_SIZE+i];
+        }
+        else {
+            dataOut[i] = 0;
+        }
     }
 
-    // Finally, reconstruct the buffer
-    for (int i = padLow; i < len + padHigh; i++) {
-        dest[startIdx + i] += src[i];
+    // Very last thing, update your output circular buffer!
+    for (int i = 0; i < 2 * FRAME_SIZE; i++) {
+        bufferOut[i] = bufferOut[i + FRAME_SIZE - 1];
     }
-}
 
+    for (int i = 0; i < FRAME_SIZE; i++) {
+        bufferOut[i + 2 * FRAME_SIZE - 1] = 0;
+    }
 
-JNIEXPORT void JNICALL
-Java_com_ece420_lab5_MainActivity_writeNewFreq(JNIEnv *env, jclass, jint newFreq) {
-    FREQ_NEW_ANDROID = (int) newFreq;
     return;
+}
+
+
+void Tune_Main(int *input1, int *input2, int *output,int length){
+    int num_of_frame = length/FRAME_SIZE;
+    float bufferIn[BUFFER_SIZE] = {};
+    float bufferOut[BUFFER_SIZE] = {};
+    int dataBuf[FRAME_SIZE] = {};
+    int dataOut[FRAME_SIZE] = {};
+    float dataVoc[FRAME_SIZE] = {};
+    int ptr = 0;
+
+    for (int i = 0; i < num_of_frame; i++){
+        for (int j=0; j<FRAME_SIZE; j++){
+            dataBuf[j] = input1[ptr+j];
+            dataVoc[j] = (float)input2[ptr+j];
+        }
+
+        FREQ_NEW = detectBufferPeriod(dataVoc,dataVoc);
+        ProcessFrame(dataBuf,dataOut,bufferIn,bufferOut);
+
+        for (int k=0;k<FRAME_SIZE;k++){
+            output[ptr+k] = dataOut[k];
+        }
+
+        ptr+=FRAME_SIZE;
+    }
+    return;
+}
+
+
+
+
+
+extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_ThirdActivity_tune(JNIEnv *env, jobject obj, jintArray array1, jintArray array2, jintArray array3) {
+    jint *elements1 = env->GetIntArrayElements(array1, 0);
+    jint *elements2 = env->GetIntArrayElements(array2, 0);
+    jint *elements3 = env->GetIntArrayElements(array3, 0);
+    jsize length1 = env->GetArrayLength(array1);
+
+
+    Tune_Main(elements1, elements2, elements3,length1);
+
+    //TO DO Add Main Processing Frame Call
+
+    env->ReleaseIntArrayElements(array1, elements1, 0); // 0 to copy back the changes (if any)
+    env->ReleaseIntArrayElements(array2, elements2, 0); // 0 to copy back the changes (if any)
+    env->ReleaseIntArrayElements(array3, elements3, 0); // 0 to copy back the changes (if any)
 }

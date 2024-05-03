@@ -71,14 +71,11 @@ class SecondActivity : AppCompatActivity() {
             val Filewav = File(storageDir, "Targetrecording.wav")
 
             var wavBytes = decodeAudioToSamples(Filewav.absolutePath)
-
+            Log.d("SecondActivity", "Array contents: ${wavBytes.contentToString()}")
             if (wavBytes != null) {
                 //var input_c = convertShortArrayToIntArray(wavBytes)
                 var output_v_c = IntArray(wavBytes.size)
                 var output_m_c = IntArray(wavBytes.size)
-
-
-
 
                 repet(wavBytes, output_v_c, output_m_c)
                 val storageDir = getExternalFilesDir(null)
@@ -90,10 +87,8 @@ class SecondActivity : AppCompatActivity() {
                 mFileName_m = File(storageDir, "BGMprocessed.mp4")
                 mFileName_v = File(storageDir,"Voiceprocessed.mp4")
 
-
-
                 encodeSamplesToFile(output_m_c, mFileName_m!!.absolutePath)
-                encodeSamplesToFile(wavBytes, mFileName_v!!.absolutePath)
+                encodeSamplesToFile(output_v_c, mFileName_v!!.absolutePath)
             }
 
 
@@ -110,7 +105,7 @@ class SecondActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_voice).setOnClickListener {
             if (!isPlayingUser) {
-                playAudio(mFileName_m!!.absolutePath)
+                playAudio(mFileName_v!!.absolutePath)
             } else {
                 pausePlaying()
             }
@@ -119,7 +114,7 @@ class SecondActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.btn_BGM).setOnClickListener {
             if (!isPlayingUser) {
-                playAudio(mFileName_v!!.absolutePath)
+                playAudio(mFileName_m!!.absolutePath)
             } else {
                 pausePlaying()
             }
@@ -297,7 +292,6 @@ class SecondActivity : AppCompatActivity() {
         // Clean up the temporary PCM file
         File(tempPcmPath).delete()
     }
-
 
 
 

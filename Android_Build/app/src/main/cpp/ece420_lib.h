@@ -8,6 +8,8 @@
 
 #include <math.h>
 #include <vector>
+#include "kiss_fft/kiss_fft.h"
+#include "kiss_fft/kissfft.hh"
 
 float getHanningCoef(int N, int idx);
 int findMaxArrayIdx(float *array, int minIdx, int maxIdx);
@@ -18,6 +20,7 @@ float findMininVector(std::vector<float> vec, size_t minIdx, size_t maxIdx);
 float sumofVecotr(std::vector<float> vec, size_t minIdx, size_t maxIdx);
 float findMedian(std::vector<float>& data, int minIdx, int maxIdx);
 size_t findMaxIndex(const std::vector<float>& data, size_t start, size_t end);
-
+std::vector<std::vector<std::complex<float>>>reverseindex_complex(std::vector<std::vector<std::complex<float>>> source);
+std::vector<float> generateSineWave(float frequency, float samplingRate, float duration);
 
 #endif //ECE420_LIB_H

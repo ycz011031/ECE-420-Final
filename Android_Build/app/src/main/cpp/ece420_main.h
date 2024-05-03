@@ -10,10 +10,11 @@
 #include "buf_manager.h"
 #include "debug_utils.h"
 
-int detectBufferPeriod(float *buffer);
-void findEpochLocations(std::vector<int> &epochLocations, float *buffer, int periodLen);
+int detectBufferPeriod(float *buffer, float* bufferIn);
+void findEpochLocations(std::vector<int> &epochLocations, float *buffer, int periodLen, float *bufferIn);
 void overlapAddArray(float *dest, float *src, int startIdx, int len);
-bool lab5PitchShift(float *bufferIn);
-void ece420ProcessFrame(sample_buf *dataBuf);
+bool PitchShift(float *bufferIn, float *bufferOut);
+void ProcessFrame(int *dataBuf, int* dataOut, float* bufferIn, float* bufferOut);
+void Tune_Main(int *input1, int *input2, int *output,int length);
 
 #endif //ECE420_MAIN_H
