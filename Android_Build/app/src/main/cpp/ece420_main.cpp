@@ -262,7 +262,7 @@ void Tune_Main(int *input1, int *input2, int *output,int length){
         ProcessFrame(dataBuf,dataOut,bufferIn,bufferOut);
 
         for (int k=0;k<FRAME_SIZE;k++){
-            output[ptr+k] = dataOut[k];
+            output[ptr+k] += dataOut[k];
         }
 
         ptr+=FRAME_SIZE;
@@ -278,7 +278,7 @@ extern "C" JNIEXPORT void JNICALL Java_com_manikbora_multiscreenapp_ThirdActivit
     jint *elements1 = env->GetIntArrayElements(array1, 0);
     jint *elements2 = env->GetIntArrayElements(array2, 0);
     jint *elements3 = env->GetIntArrayElements(array3, 0);
-    jsize length1 = env->GetArrayLength(array1);
+    jsize length1 = env->GetArrayLength(array2);
 
 
     Tune_Main(elements1, elements2, elements3,length1);

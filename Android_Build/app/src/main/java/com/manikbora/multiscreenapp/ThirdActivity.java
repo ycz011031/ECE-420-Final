@@ -104,22 +104,17 @@ public class ThirdActivity extends AppCompatActivity {
 
                 File storageDir = getExternalFilesDir(null);
                 mFileName_u = new File(storageDir, "Voiceprocessed.mp4").getAbsolutePath();
-                mFileName = new File(storageDir,"Usersing.wav").getAbsolutePath();
+                mFileName = new File(storageDir,"Usersing.mp4").getAbsolutePath();
                 mFileName_m = new File(storageDir,"BGMprocessed.mp4").getAbsolutePath();
                 int[] BGM = decodeFileToSamples(mFileName_m);
                 int[] input_voiced = decodeFileToSamples(mFileName_u);
-                int[] input_org_us = decodeFileToSamples(mFileName);
-                int[] input_user = resizeSecondArray(input_voiced,input_org_us);
-                int[] output = input_user.clone();
+                int[] input_user = decodeFileToSamples(mFileName);
+                int[] output = BGM.clone();
 
                 tune(input_user,input_voiced,output);
 
-                for (int i =0; i<output.length;i++){
-                    output[i] = output[i] + BGM[i];
-                }
 
-
-                mFileName_r = new File(storageDir, "Result.wav").getAbsolutePath();
+                mFileName_r = new File(storageDir, "Result.mp4").getAbsolutePath();
                 encodeSamplesToFile(output,mFileName_r);
             }
         });
@@ -158,7 +153,7 @@ public class ThirdActivity extends AppCompatActivity {
                 if (!is_playing_usr){
                     //AudioPlayer();
                     File storageDir = getExternalFilesDir(null);
-                    mFileName_r = new File(storageDir, "Result.wav").getAbsolutePath();
+                    mFileName_r = new File(storageDir, "Usersing.mp4").getAbsolutePath();
                     playAudio(mFileName_r);
                 }
                 else{
@@ -204,7 +199,7 @@ public class ThirdActivity extends AppCompatActivity {
 
     public void startRecording() {
         File storageDir = getExternalFilesDir(null); // Gets app-specific storage directory
-        mFileName = new File(storageDir, "Usersing.wav").getAbsolutePath();
+        mFileName = new File(storageDir, "Usersing.mp4").getAbsolutePath();
 
 
         if (mRecorder != null) {
@@ -299,21 +294,6 @@ public class ThirdActivity extends AppCompatActivity {
         new File(tempPcmPath).delete();
         return null;
 
-    }
-
-    public static int[] resizeSecondArray(int[] input1, int[] input2) {
-        // Check if input2 is indeed longer or equal in size to input1
-        if (input2.length < input1.length) {
-            throw new IllegalArgumentException("input2 is not longer or equal in size to input1");
-        }
-
-        // Create a new array of the same size as input1
-        int[] resizedArray = new int[input1.length];
-
-        // Copy elements from input2 to the new array
-        System.arraycopy(input2, 0, resizedArray, 0, input1.length);
-
-        return resizedArray;
     }
 
     public static void encodeSamplesToFile(int[] samples, String outputFilePath) {
