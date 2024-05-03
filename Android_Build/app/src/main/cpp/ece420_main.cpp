@@ -17,7 +17,7 @@ Java_com_ece420_lab5_MainActivity_writeNewFreq(JNIEnv *env, jclass, jint);
 
 // Student Variables
 #define EPOCH_PEAK_REGION_WIGGLE 30
-#define VOICED_THRESHOLD 200000000
+#define VOICED_THRESHOLD 2000
 #define FRAME_SIZE 1024
 #define BUFFER_SIZE (3 * FRAME_SIZE)
 #define F_S 48000
@@ -204,6 +204,69 @@ int detectBufferPeriod(float *buffer, float* bufferIn) {
 
     return periodLen;
 }
+int detectBufferFrequency(float *buffer, float* bufferIn) {
+
+//
+//    float totalPower = 0;
+//    for (int i = 0; i < BUFFER_SIZE; i++) {
+//        totalPower += buffer[i] * buffer[i];
+//    }
+//
+//
+//    if (totalPower < VOICED_THRESHOLD) {
+//        return -1;
+//    }
+
+    // FFT is done using Kiss FFT engine. Remember to free(cfg) on completion
+    kiss_fft_cfg cfg = kiss_fft_alloc(BUFFER_SIZE, false, 0, 0);
+
+    kiss_fft_cpx buffer_in[BUFFER_SIZE];
+    kiss_fft_cpx buffer_fft[BUFFER_SIZE];
+
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        buffer_in[i].r = bufferIn[i];
+        buffer_in[i].i = 0;
+    }
+
+    kiss_fft(cfg, buffer_in, buffer_fft);
+    free(cfg);
+
+
+    // Autocorrelation is given by:
+    // autoc = ifft(fft(x) * conj(fft(x))
+    //
+    // Also, (a + jb) (a - jb) = a^2 + b^2
+    kiss_fft_cfg cfg_ifft = kiss_fft_alloc(BUFFER_SIZE, true, 0, 0);
+
+    kiss_fft_cpx multiplied_fft[BUFFER_SIZE];
+    kiss_fft_cpx autoc_kiss[BUFFER_SIZE];
+
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        multiplied_fft[i].r = (buffer_fft[i].r * buffer_fft[i].r)
+                              + (buffer_fft[i].i * buffer_fft[i].i);
+        multiplied_fft[i].i = 0;
+    }
+
+    kiss_fft(cfg_ifft, multiplied_fft, autoc_kiss);
+    free(cfg_ifft);
+
+    // Move to a normal float array rather than a struct array of r/i components
+    float autoc[BUFFER_SIZE];
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        autoc[i] = autoc_kiss[i].r;
+    }
+
+    // We're only interested in pitches below 1000Hz.
+    // Why does this line guarantee we only identify pitches below 1000Hz?
+    int minIdx = F_S / 1000;
+    int maxIdx = BUFFER_SIZE / 2;
+
+    int periodLen = findMaxArrayIdx(autoc, minIdx, maxIdx);
+    float freq = ((float) F_S) / periodLen;
+
+    // TODO: tune
+    return freq;
+}
 
 
 
@@ -254,18 +317,18 @@ void Tune_Main(int *input1, int *input2, int *output,int length){
 
     for (int i = 0; i < num_of_frame; i++){
         for (int j=0; j<FRAME_SIZE; j++){
-            dataBuf[j] = input1[ptr+j];
-            dataVoc[j] = (float)input2[ptr+j];
+            dataBuf[j] = input1[ptr*i+j];
+            dataVoc[j] = static_cast<float>(input2[ptr*i+j]);
         }
 
-        FREQ_NEW = detectBufferPeriod(dataVoc,dataVoc);
+        FREQ_NEW = detectBufferFrequency(dataVoc,dataVoc);
         ProcessFrame(dataBuf,dataOut,bufferIn,bufferOut);
 
         for (int k=0;k<FRAME_SIZE;k++){
-            output[ptr+k] += dataOut[k];
+            output[ptr+k] = 3*dataOut[k];
         }
 
-        ptr+=FRAME_SIZE;
+
     }
     return;
 }

@@ -153,7 +153,7 @@ public class ThirdActivity extends AppCompatActivity {
                 if (!is_playing_usr){
                     //AudioPlayer();
                     File storageDir = getExternalFilesDir(null);
-                    mFileName_r = new File(storageDir, "Usersing.mp4").getAbsolutePath();
+                    mFileName_r = new File(storageDir, "Result.mp4").getAbsolutePath();
                     playAudio(mFileName_r);
                 }
                 else{

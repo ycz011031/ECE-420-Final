@@ -87,8 +87,8 @@ class SecondActivity : AppCompatActivity() {
                 mFileName_m = File(storageDir, "BGMprocessed.mp4")
                 mFileName_v = File(storageDir,"Voiceprocessed.mp4")
 
-                encodeSamplesToFile(output_m_c, mFileName_m!!.absolutePath)
-                encodeSamplesToFile(output_v_c, mFileName_v!!.absolutePath)
+                encodeSamplesToFile(output_v_c, mFileName_m!!.absolutePath)
+                encodeSamplesToFile(output_m_c, mFileName_v!!.absolutePath)
             }
 
 
