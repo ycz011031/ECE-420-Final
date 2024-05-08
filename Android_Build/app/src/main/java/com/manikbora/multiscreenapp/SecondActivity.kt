@@ -26,6 +26,10 @@ import java.io.FileOutputStream
 
 
 
+
+
+
+
 class SecondActivity : AppCompatActivity() {
 
     private var mRecorder: MediaRecorder? = null

@@ -6,7 +6,7 @@
 #ifndef ECE420_MAIN_H
 #define ECE420_MAIN_H
 
-#include "audio_common.h"
+//#include "audio_common.h"
 #include "buf_manager.h"
 #include "debug_utils.h"
 

@@ -181,7 +181,7 @@ __inline__ sample_buf *allocateSampleBufs(uint32_t count, uint32_t sizeInByte){
     for(i =0; i < count; i++) {
         bufs[i].buf_ = new uint8_t [allocSize];
         if(bufs[i].buf_ == nullptr) {
-            LOGW("====Requesting %d buffers, allocated %d in %s",count, i,  __FUNCTION__);
+            //LOGW("====Requesting %d buffers, allocated %d in %s",count, i,  __FUNCTION__);
             break;
         }
         bufs[i].cap_ = sizeInByte;
