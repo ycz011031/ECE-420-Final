@@ -1,1 +1,2 @@
 *.ipynb linguist-vendored
+*.c linguist-vendored
